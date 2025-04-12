@@ -1,3 +1,7 @@
+# Gabriel Flores Urbina
+
+#https://github.com/GABRIELOSKY25/S4A_TOPICOS
+
 import wx
 
 Menu = wx.App()
