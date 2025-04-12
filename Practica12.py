@@ -122,7 +122,7 @@ def Cliente():
 
 def Empleado():
      # Crear ventana de Empleados
-    ventana = wx.Frame(None, title='Empleado', size=(500, 450))
+    ventana = wx.Frame(None, title='Empleado', size=(500, 490))
 
     # Crear espacio para trabajar en la ventana Empleados
     panel = wx.Panel(ventana)
@@ -139,40 +139,46 @@ def Empleado():
     letra_idEmpleado = wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD)
     idEmpleado.SetFont(letra_idEmpleado)
 
-    Nombre = wx.StaticText(panel, label = "Nombre: ", pos = (60, 120))
-    txt_Nombre = wx.TextCtrl(panel, pos = (140, 116), size = (200, -1))
+    Contraseña = wx.StaticText(panel, label = "Contraseña: ", pos = (60, 120))
+    txt_Contraseña = wx.TextCtrl(panel, pos = (140, 116), size = (200, -1),style=wx.TE_PASSWORD)
+    txt_Contraseña.SetBackgroundColour(wx.Colour(254, 241, 147))
+    letra_Contraseña = wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD)
+    Contraseña.SetFont(letra_Contraseña)
+
+    Nombre = wx.StaticText(panel, label = "Nombre: ", pos = (60, 160))
+    txt_Nombre = wx.TextCtrl(panel, pos = (140, 156), size = (200, -1))
     txt_Nombre.SetBackgroundColour(wx.Colour(181, 242, 248))
     letra_Nombre = wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD)
     Nombre.SetFont(letra_Nombre)
 
-    Apellidos = wx.StaticText(panel, label = "Apellidos: ", pos = (60, 160))
-    txt_Apellidos = wx.TextCtrl(panel, pos = (140, 156), size = (200, -1))
+    Apellidos = wx.StaticText(panel, label = "Apellidos: ", pos = (60, 200))
+    txt_Apellidos = wx.TextCtrl(panel, pos = (140, 196), size = (200, -1))
     txt_Apellidos.SetBackgroundColour(wx.Colour(210, 255, 254))
     letra_Apellidos = wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD)
     Apellidos.SetFont(letra_Apellidos)
     
-    Edad = wx.StaticText(panel, label = "Edad: ", pos = (60, 200))
-    txt_Edad = wx.TextCtrl(panel, pos = (140, 196), size = (200, -1))
+    Edad = wx.StaticText(panel, label = "Edad: ", pos = (60, 240))
+    txt_Edad = wx.TextCtrl(panel, pos = (140, 236), size = (200, -1))
     txt_Edad.SetBackgroundColour(wx.Colour(210, 255, 254))
     letra_Edad = wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD)
     Edad.SetFont(letra_Edad)
 
-    Puesto = wx.StaticText(panel, label = "Puesto: ", pos = (60, 240))
-    txt_Puesto = wx.TextCtrl(panel, pos = (140, 236), size = (200, -1))
+    Puesto = wx.StaticText(panel, label = "Puesto: ", pos = (60, 280))
+    txt_Puesto = wx.TextCtrl(panel, pos = (140, 276), size = (200, -1))
     txt_Puesto.SetBackgroundColour(wx.Colour(181, 242, 248))
     letra_Puesto = wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD)
     Puesto.SetFont(letra_Puesto)
 
-    Salario = wx.StaticText(panel, label = "Salario: ", pos = (60, 280))
-    txt_Salario = wx.TextCtrl(panel, pos = (140, 276), size = (200, -1))
+    Salario = wx.StaticText(panel, label = "Salario: ", pos = (60, 320))
+    txt_Salario = wx.TextCtrl(panel, pos = (140, 316), size = (200, -1))
     txt_Salario.SetBackgroundColour(wx.Colour(181, 242, 248))
     letra_Salario = wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD)
     Salario.SetFont(letra_Salario)
 
     # Botón de Empleados
-    boton_Eliminar = wx.Button(panel, label = "Eliminar", pos = (70, 340), size = (100, 30))
-    boton_Guardar = wx.Button(panel, label = "Guardar", pos = (190, 340), size = (100, 30))
-    boton_Actualizar = wx.Button(panel, label = "Actualizar", pos=(310, 340), size = (100, 30))
+    boton_Eliminar = wx.Button(panel, label = "Eliminar", pos = (70, 380), size = (100, 30))
+    boton_Guardar = wx.Button(panel, label = "Guardar", pos = (190, 380), size = (100, 30))
+    boton_Actualizar = wx.Button(panel, label = "Actualizar", pos=(310, 380), size = (100, 30))
 
     ventana.Show()
 
