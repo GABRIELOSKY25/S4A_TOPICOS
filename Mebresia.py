@@ -103,17 +103,41 @@ def Membresia():
     def leer_membresia(event):
         try:
             cursor = conexion.cursor()
-            sql = "SELECT * FROM membresia WHERE idCodigo=%s"
-            cursor.execute(sql, (txt_idCodigo.GetValue(),))
-            resultado = cursor.fetchone()
-            if resultado:
-                txt_Fecha_Activacion.SetValue(str(resultado[1]))
-                txt_Fecha_Vigencia.SetValue(str(resultado[2]))
-                txt_Tipo.SetValue(str(resultado[3]))
+            query = "SELECT idCodigo, Fecha_Activacion, Fecha_Vigencia, Tipo FROM membresia"
+            cursor.execute(query)
+            resultados = cursor.fetchall()
+
+            if resultados:
+                ventana_emergente = wx.Frame(None, title="Listado de Membresías", size=(800, 500))
+                panel = wx.Panel(ventana_emergente)
+
+                wx.StaticText(panel, label="Listado de Membresías", pos=(300, 15)).SetFont(wx.Font(14, wx.DEFAULT, wx.NORMAL, wx.BOLD))
+
+                # Encabezados
+                headers = ["Código", "Fecha Activación", "Fecha Vigencia", "Tipo"]
+                for i, header in enumerate(headers):
+                    wx.StaticText(panel, label=header, pos=(20 + i * 180, 50)).SetFont(wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD))
+
+                # Mostrar cada membresía
+                for row_index, membresia in enumerate(resultados):
+                    y = 70 + row_index * 30  # Espaciado entre filas
+                    for col_index, valor in enumerate(membresia):
+                        # Formatear fechas si es necesario
+                        if col_index in [1, 2] and valor:  # Columnas de fecha
+                            valor = str(valor).split()[0]  # Mostrar solo la fecha sin la hora
+                        wx.StaticText(panel, label=str(valor), pos=(20 + col_index * 180, y))
+
+                # Añadir barra de desplazamiento si hay muchos registros
+                if len(resultados) > 10:
+                    scroll = wx.ScrollBar(panel, pos=(0, 450), size=(800, 20), style=wx.SB_HORIZONTAL)
+                    scroll.SetScrollbar(0, 10, len(resultados), 1)
+
+                ventana_emergente.Show()
             else:
-                wx.MessageBox("Membresía no encontrada", "Atención", wx.OK | wx.ICON_WARNING)
+                wx.MessageBox("No hay membresías registradas", "Información", wx.OK | wx.ICON_INFORMATION)
+
         except Error as ex:
-            wx.MessageBox(f"Error al leer membresía: {ex}", "Error", wx.OK | wx.ICON_ERROR)
+            wx.MessageBox(f"Error al consultar membresías: {ex}", "Error", wx.OK | wx.ICON_ERROR)
 
     # Botones
     boton_Guardar = wx.Button(panel, label="Guardar", pos=(30, 260), size=(100, 30))

@@ -80,15 +80,33 @@ def Categoria():
 
     def leer_categoria(event):
         try:
-            query = "SELECT * FROM categoria WHERE idCategoria=%s"
-            cursor.execute(query, (txt_idCategoria.GetValue(),))
-            resultado = cursor.fetchone()
-            if resultado:
-                txt_Nombre.SetValue(resultado[1])
+            query = "SELECT * FROM categoria"
+            cursor.execute(query)
+            resultados = cursor.fetchall()
+
+            if resultados:
+                ventana_emergente = wx.Frame(None, title="Listado de Categorías", size=(500, 400))
+                panel = wx.Panel(ventana_emergente)
+
+                wx.StaticText(panel, label="Listado de Categorías", pos=(150, 15)).SetFont(wx.Font(14, wx.DEFAULT, wx.NORMAL, wx.BOLD))
+
+                # Encabezados
+                headers = ["ID Categoría", "Nombre"]
+                for i, header in enumerate(headers):
+                    wx.StaticText(panel, label=header, pos=(50 + i * 200, 50)).SetFont(wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD))
+
+                # Mostrar cada categoría
+                for row_index, categoria in enumerate(resultados):
+                    y = 70 + row_index * 30  # Espaciado entre filas
+                    for col_index, valor in enumerate(categoria):
+                        wx.StaticText(panel, label=str(valor), pos=(50 + col_index * 200, y))
+
+                ventana_emergente.Show()
             else:
-                wx.MessageBox("Categoría no encontrada", "Info", wx.OK | wx.ICON_INFORMATION)
+                wx.MessageBox("No hay categorías registradas", "Información", wx.OK | wx.ICON_INFORMATION)
+
         except Error as e:
-            wx.MessageBox(f"Error al leer categoría: {e}", "Error", wx.OK | wx.ICON_ERROR)
+            wx.MessageBox(f"Error al consultar categorías: {e}", "Error", wx.OK | wx.ICON_ERROR)
 
     # Botones
     wx.Button(panel, label="Guardar", pos=(30, 180), size=(100, 30)).Bind(wx.EVT_BUTTON, insertar_categoria)

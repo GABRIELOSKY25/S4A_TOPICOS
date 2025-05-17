@@ -25,7 +25,7 @@ except Error as ex:
 Menu = wx.App()
 
 def Empleado():
-    ventana = wx.Frame(None, title='Empleado', size=(500, 490))
+    ventana = wx.Frame(None, title='Empleado', size=(500, 450))
     panel = wx.Panel(ventana)
 
     # Título
@@ -37,37 +37,32 @@ def Empleado():
     txt_idEmpleado = wx.TextCtrl(panel, pos=(140, 76), size=(200, -1))
     txt_idEmpleado.SetBackgroundColour(wx.Colour(254, 241, 147))
 
-    wx.StaticText(panel, label="Contraseña:", pos=(60, 120)).SetFont(wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD))
-    txt_Contraseña = wx.TextCtrl(panel, pos=(140, 116), size=(200, -1), style=wx.TE_PASSWORD)
-    txt_Contraseña.SetBackgroundColour(wx.Colour(254, 241, 147))
-
-    wx.StaticText(panel, label="Nombre:", pos=(60, 160)).SetFont(wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD))
-    txt_Nombre = wx.TextCtrl(panel, pos=(140, 156), size=(200, -1))
+    wx.StaticText(panel, label="Nombre:", pos=(60, 120)).SetFont(wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD))
+    txt_Nombre = wx.TextCtrl(panel, pos=(140, 116), size=(200, -1))
     txt_Nombre.SetBackgroundColour(wx.Colour(181, 242, 248))
 
-    wx.StaticText(panel, label="Apellidos:", pos=(60, 200)).SetFont(wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD))
-    txt_Apellidos = wx.TextCtrl(panel, pos=(140, 196), size=(200, -1))
+    wx.StaticText(panel, label="Apellidos:", pos=(60, 160)).SetFont(wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD))
+    txt_Apellidos = wx.TextCtrl(panel, pos=(140, 156), size=(200, -1))
     txt_Apellidos.SetBackgroundColour(wx.Colour(210, 255, 254))
 
-    wx.StaticText(panel, label="Edad:", pos=(60, 240)).SetFont(wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD))
-    txt_Edad = wx.TextCtrl(panel, pos=(140, 236), size=(200, -1))
+    wx.StaticText(panel, label="Edad:", pos=(60, 200)).SetFont(wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD))
+    txt_Edad = wx.TextCtrl(panel, pos=(140, 196), size=(200, -1))
     txt_Edad.SetBackgroundColour(wx.Colour(210, 255, 254))
 
-    wx.StaticText(panel, label="Puesto:", pos=(60, 280)).SetFont(wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD))
-    txt_Puesto = wx.TextCtrl(panel, pos=(140, 276), size=(200, -1))
+    wx.StaticText(panel, label="Puesto:", pos=(60, 240)).SetFont(wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD))
+    txt_Puesto = wx.TextCtrl(panel, pos=(140, 236), size=(200, -1))
     txt_Puesto.SetBackgroundColour(wx.Colour(181, 242, 248))
 
-    wx.StaticText(panel, label="Salario:", pos=(60, 320)).SetFont(wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD))
-    txt_Salario = wx.TextCtrl(panel, pos=(140, 316), size=(200, -1))
+    wx.StaticText(panel, label="Salario:", pos=(60, 280)).SetFont(wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD))
+    txt_Salario = wx.TextCtrl(panel, pos=(140, 276), size=(200, -1))
     txt_Salario.SetBackgroundColour(wx.Colour(181, 242, 248))
 
     # Funciones CRUD
     def insertar_empleado(event):
         try:
-            query = "INSERT INTO empleado (idEmpleado, Contraseña, Nombre, Apellidos, Edad, Puesto, Salario) VALUES (%s, %s, %s, %s, %s, %s, %s)"
+            query = "INSERT INTO empleado (idEmpleado, Nombre, Apellido, Edad, Puesto, Salario) VALUES (%s, %s, %s, %s, %s, %s)"
             valores = (
                 txt_idEmpleado.GetValue(),
-                txt_Contraseña.GetValue(),
                 txt_Nombre.GetValue(),
                 txt_Apellidos.GetValue(),
                 txt_Edad.GetValue(),
@@ -82,9 +77,8 @@ def Empleado():
 
     def actualizar_empleado(event):
         try:
-            query = "UPDATE empleado SET Contraseña=%s, Nombre=%s, Apellidos=%s, Edad=%s, Puesto=%s, Salario=%s WHERE idEmpleado=%s"
+            query = "UPDATE empleado SET Nombre=%s, Apellido=%s, Edad=%s, Puesto=%s, Salario=%s WHERE idEmpleado=%s"
             valores = (
-                txt_Contraseña.GetValue(),
                 txt_Nombre.GetValue(),
                 txt_Apellidos.GetValue(),
                 txt_Edad.GetValue(),
@@ -109,28 +103,42 @@ def Empleado():
 
     def leer_empleado(event):
         try:
-            query = "SELECT * FROM empleado WHERE idEmpleado=%s"
-            cursor.execute(query, (txt_idEmpleado.GetValue(),))
-            resultado = cursor.fetchone()
-            if resultado:
-                txt_Contraseña.SetValue(resultado[1])
-                txt_Nombre.SetValue(resultado[2])
-                txt_Apellidos.SetValue(resultado[3])
-                txt_Edad.SetValue(str(resultado[4]))
-                txt_Puesto.SetValue(resultado[5])
-                txt_Salario.SetValue(str(resultado[6]))
+            query = "SELECT idEmpleado, Nombre, Apellido, Puesto, Salario FROM empleado"
+            cursor.execute(query)
+            resultados = cursor.fetchall()
+
+            if resultados:
+                ventana_emergente = wx.Frame(None, title="Listado de Empleados", size=(800, 500))
+                panel = wx.Panel(ventana_emergente)
+
+                wx.StaticText(panel, label="Listado de Empleados", pos=(300, 15)).SetFont(wx.Font(14, wx.DEFAULT, wx.NORMAL, wx.BOLD))
+
+                headers = ["ID", "Nombre", "Apellido", "Puesto", "Salario"]
+                for i, header in enumerate(headers):
+                    wx.StaticText(panel, label=header, pos=(20 + i * 150, 50)).SetFont(wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD))
+
+                for row_index, empleado in enumerate(resultados):
+                    y = 70 + row_index * 30
+                    for col_index, valor in enumerate(empleado):
+                        if col_index == len(empleado)-1:
+                            valor = f"${float(valor):,.2f}"
+                        wx.StaticText(panel, label=str(valor), pos=(20 + col_index * 150, y))
+
+                ventana_emergente.Show()
             else:
-                wx.MessageBox("Empleado no encontrado", "Info", wx.OK | wx.ICON_INFORMATION)
+                wx.MessageBox("No hay empleados registrados", "Información", wx.OK | wx.ICON_INFORMATION)
+
         except Error as e:
-            wx.MessageBox(f"Error al leer empleado: {e}", "Error", wx.OK | wx.ICON_ERROR)
+            wx.MessageBox(f"Error al consultar empleados: {e}", "Error", wx.OK | wx.ICON_ERROR)
 
     # Botones
-    wx.Button(panel, label="Guardar", pos=(30, 380), size=(100, 30)).Bind(wx.EVT_BUTTON, insertar_empleado)
-    wx.Button(panel, label="Actualizar", pos=(140, 380), size=(100, 30)).Bind(wx.EVT_BUTTON, actualizar_empleado)
-    wx.Button(panel, label="Eliminar", pos=(250, 380), size=(100, 30)).Bind(wx.EVT_BUTTON, eliminar_empleado)
-    wx.Button(panel, label="Leer", pos=(360, 380), size=(100, 30)).Bind(wx.EVT_BUTTON, leer_empleado)
+    wx.Button(panel, label="Guardar", pos=(30, 340), size=(100, 30)).Bind(wx.EVT_BUTTON, insertar_empleado)
+    wx.Button(panel, label="Actualizar", pos=(140, 340), size=(100, 30)).Bind(wx.EVT_BUTTON, actualizar_empleado)
+    wx.Button(panel, label="Eliminar", pos=(250, 340), size=(100, 30)).Bind(wx.EVT_BUTTON, eliminar_empleado)
+    wx.Button(panel, label="Leer", pos=(360, 340), size=(100, 30)).Bind(wx.EVT_BUTTON, leer_empleado)
 
     ventana.Show()
 
 Empleado()
 Menu.MainLoop()
+

@@ -1,6 +1,7 @@
 import wx
 import mysql.connector
 from mysql.connector import Error
+import wx.grid
 
 # Conexión a la base de datos
 try:
@@ -94,18 +95,35 @@ def Proveedor():
 
     def leer_proveedor(event):
         try:
-            query = "SELECT * FROM proveedor WHERE idProveedor=%s"
-            cursor.execute(query, (txt_idProveedor.GetValue(),))
-            resultado = cursor.fetchone()
-            if resultado:
-                txt_Nombre.SetValue(resultado[1])
-                txt_Apellidos.SetValue(resultado[2])
-                txt_Telefono.SetValue(resultado[3])
-                txt_Direccion.SetValue(resultado[4])
+            query = "SELECT * FROM proveedor"
+            cursor.execute(query)
+            resultados = cursor.fetchall()
+
+            if resultados:
+                ventana_emergente = wx.Frame(None, title="Listado de Proveedores", size=(600, 400))
+                panel = wx.Panel(ventana_emergente)
+
+                wx.StaticText(panel, label="Listado de Proveedores", pos=(170, 15)).SetFont(wx.Font(14, wx.DEFAULT, wx.NORMAL, wx.BOLD))
+
+                # Encabezados
+                headers = ["ID", "Nombre", "Apellidos", "Teléfono", "Dirección"]
+                for i, header in enumerate(headers):
+                    wx.StaticText(panel, label=header, pos=(20 + i * 120, 50)).SetFont(wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD))
+
+                # Mostrar cada proveedor con separación vertical
+                for row_index, proveedor in enumerate(resultados):
+                    y = 70 + row_index * 30  # Espaciado entre filas
+                    for col_index, valor in enumerate(proveedor):
+                        wx.StaticText(panel, label=str(valor), pos=(20 + col_index * 120, y))
+
+                ventana_emergente.Show()
+
             else:
-                wx.MessageBox("Proveedor no encontrado", "Info", wx.OK | wx.ICON_INFORMATION)
+                wx.MessageBox("No hay proveedores registrados", "Información", wx.OK | wx.ICON_INFORMATION)
+
         except Error as e:
-            wx.MessageBox(f"Error al leer proveedor: {e}", "Error", wx.OK | wx.ICON_ERROR)
+            wx.MessageBox(f"Error al consultar proveedores: {e}", "Error", wx.OK | wx.ICON_ERROR)
+
 
     # Botones
     wx.Button(panel, label="Guardar", pos=(30, 300), size=(100, 30)).Bind(wx.EVT_BUTTON, insertar_proveedor)
