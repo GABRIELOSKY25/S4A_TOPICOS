@@ -21,8 +21,6 @@ try:
 except Error as ex:
     print("Error al conectar:", ex)
 
-Menu = wx.App()
-
 def Historial_Precio():
     ventana = wx.Frame(None, title='Historial Precio', size=(500, 410))
     panel = wx.Panel(ventana)
@@ -151,5 +149,7 @@ def Historial_Precio():
 
     ventana.Show()
 
-Historial_Precio()
-Menu.MainLoop()
+if __name__ == "__main__":
+    Ventana = wx.App()
+    Historial_Precio()
+    Ventana.MainLoop()

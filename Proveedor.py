@@ -19,8 +19,6 @@ try:
 except Error as ex:
     print("Error al conectar:", ex)
 
-Menu = wx.App()
-
 def Proveedor():
     ventana = wx.Frame(None, title='Proveedor', size=(500, 415))
     panel = wx.Panel(ventana)
@@ -133,5 +131,7 @@ def Proveedor():
 
     ventana.Show()
 
-Proveedor()
-Menu.MainLoop()
+if __name__ == "__main__":
+    Ventana = wx.App()
+    Proveedor()
+    Ventana.MainLoop()

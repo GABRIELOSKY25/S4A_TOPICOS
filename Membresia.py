@@ -6,7 +6,7 @@ import wx
 import mysql.connector
 from mysql.connector import Error
 
-# Conexión a la base de datos
+    # Conexión a la base de datos
 try:
     conexion = mysql.connector.connect(
         host="localhost",
@@ -19,8 +19,6 @@ try:
         print("Conexión exitosa a MySQL/MariaDB")
 except Error as ex:
     print("Error al conectar:", ex)
-
-Menu = wx.App()
 
 def Membresia():
     ventana = wx.Frame(None, title='Membresía', size=(500, 370))
@@ -153,5 +151,7 @@ def Membresia():
 
     ventana.Show()
 
-Membresia()
-Menu.MainLoop()
+if __name__ == "__main__":
+    Ventana = wx.App()
+    Membresia()
+    Ventana.MainLoop()

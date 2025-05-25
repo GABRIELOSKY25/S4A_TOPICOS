@@ -22,8 +22,6 @@ try:
 except Error as ex:
     print("Error al conectar:", ex)
 
-App = wx.App()
-
 def Cliente():
     ventana = wx.Frame(None, title='Clientes', size=(500, 450))
     panel = wx.Panel(ventana)
@@ -156,6 +154,7 @@ def Cliente():
 
     ventana.Show()
 
-Cliente()
-App.MainLoop()
-
+if __name__ == "__main__":
+    Ventana = wx.App()
+    Cliente()
+    Ventana.MainLoop()
