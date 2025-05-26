@@ -22,9 +22,10 @@ try:
 except Error as ex:
     print("Error al conectar:", ex)
 
-def Categoria():
-    ventana = wx.Frame(None, title='Categoría', size=(500, 290))
+def Categoria(parent_frame=None):
+    ventana = wx.Frame(None, title='Categoría', size=(500, 340))  # Aumenté el tamaño para el botón de regresar
     panel = wx.Panel(ventana)
+    ventana.parent_frame = parent_frame  # Guardar referencia al frame padre (menú)
 
     # Título
     titulo = wx.StaticText(panel, label="Categorías", pos=(187, 30))
@@ -106,11 +107,29 @@ def Categoria():
         except Error as e:
             wx.MessageBox(f"Error al consultar categorías: {e}", "Error", wx.OK | wx.ICON_ERROR)
 
-    # Botones
+    def regresar_menu(event):
+        """Regresa al menú principal"""
+        if ventana.parent_frame:
+            ventana.parent_frame.Show()  # Mostrar el menú
+        ventana.Destroy()  # Cerrar esta ventana
+
+    def on_close(event):
+        """Maneja el evento cuando se cierra la ventana"""
+        if ventana.parent_frame:
+            ventana.parent_frame.Show()  # Mostrar el menú al cerrar
+        ventana.Destroy()
+
+    # Botones CRUD
     wx.Button(panel, label="Guardar", pos=(30, 180), size=(100, 30)).Bind(wx.EVT_BUTTON, insertar_categoria)
     wx.Button(panel, label="Actualizar", pos=(140, 180), size=(100, 30)).Bind(wx.EVT_BUTTON, actualizar_categoria)
     wx.Button(panel, label="Eliminar", pos=(250, 180), size=(100, 30)).Bind(wx.EVT_BUTTON, eliminar_categoria)
     wx.Button(panel, label="Leer", pos=(360, 180), size=(100, 30)).Bind(wx.EVT_BUTTON, leer_categoria)
+
+    # Botón para regresar al menú
+    wx.Button(panel, label="Regresar al menú", pos=(180, 230), size=(150, 30)).Bind(wx.EVT_BUTTON, regresar_menu)
+
+    # Manejar el evento de cerrar ventana
+    ventana.Bind(wx.EVT_CLOSE, on_close)
 
     ventana.Show()
 

@@ -1,6 +1,5 @@
 # Gabriel Flores Urbina
-
-#https://github.com/GABRIELOSKY25/S4A_TOPICOS
+# https://github.com/GABRIELOSKY25/S4A_TOPICOS
 
 import wx
 import mysql.connector
@@ -22,17 +21,10 @@ try:
 except Error as ex:
     print("Error al conectar:", ex)
 
-def Cliente():
-    ventana = wx.Frame(None, title='Clientes', size=(500, 450))
+def Cliente(parent_frame=None):
+    ventana = wx.Frame(None, title='Clientes', size=(500, 550))  # Aumenté el tamaño para el botón de regresar
     panel = wx.Panel(ventana)
-
-    # Título
-    titulo = wx.StaticText(panel, label="Clientes", pos=(180, 30))
-    titulo.SetFont(wx.Font(16, wx.DEFAULT, wx.NORMAL, wx.BOLD))
-
-    # Campos
-    ventana = wx.Frame(None, title='Cliente', size=(500, 550))
-    panel = wx.Panel(ventana)
+    ventana.parent_frame = parent_frame  # Guardar referencia al frame padre (menú)
 
     # Título
     titulo = wx.StaticText(panel, label="Clientes", pos=(195, 30))
@@ -146,11 +138,29 @@ def Cliente():
         except Error as e:
             wx.MessageBox(f"Error al consultar clientes: {e}", "Error", wx.OK | wx.ICON_ERROR)
 
-    # Botones
+    def regresar_menu(event):
+        """Regresa al menú principal"""
+        if ventana.parent_frame:
+            ventana.parent_frame.Show()  # Mostrar el menú
+        ventana.Destroy()  # Cerrar esta ventana
+
+    def on_close(event):
+        """Maneja el evento cuando se cierra la ventana"""
+        if ventana.parent_frame:
+            ventana.parent_frame.Show()  # Mostrar el menú al cerrar
+        ventana.Destroy()
+
+    # Botones CRUD
     wx.Button(panel, label="Guardar", pos=(30, 420), size=(100, 30)).Bind(wx.EVT_BUTTON, insertar_cliente)
     wx.Button(panel, label="Actualizar", pos=(140, 420), size=(100, 30)).Bind(wx.EVT_BUTTON, actualizar_cliente)
     wx.Button(panel, label="Eliminar", pos=(250, 420), size=(100, 30)).Bind(wx.EVT_BUTTON, eliminar_cliente)
     wx.Button(panel, label="Leer", pos=(360, 420), size=(100, 30)).Bind(wx.EVT_BUTTON, leer_cliente)
+    
+    # Botón para regresar al menú
+    wx.Button(panel, label="Regresar al menú", pos=(180, 470), size=(150, 30)).Bind(wx.EVT_BUTTON, regresar_menu)
+
+    # Manejar el evento de cerrar ventana
+    ventana.Bind(wx.EVT_CLOSE, on_close)
 
     ventana.Show()
 

@@ -5,6 +5,7 @@
 import wx
 import mysql.connector
 from mysql.connector import Error
+from Historial_Precio import Historial_Precio
 
 # Conexión a la base de datos
 try:
@@ -22,9 +23,10 @@ try:
 except Error as ex:
     print("Error al conectar:", ex)
 
-def Articulo():
-    ventana = wx.Frame(None, title='Articulo', size=(500, 500))
+def Articulo(parent_frame=None):
+    ventana = wx.Frame(None, title='Articulo', size=(500, 550))  # Aumenté el tamaño para el botón de regresar
     panel = wx.Panel(ventana)
+    ventana.parent_frame = parent_frame  # Guardar referencia al frame padre (menú)
 
     # Título
     titulo = wx.StaticText(panel, label="Articulos", pos=(195, 30))
@@ -144,7 +146,6 @@ def Articulo():
                     for col_index, valor in enumerate(articulo):
                         wx.StaticText(panel, label=str(valor), pos=(20 + col_index * 100, y))
 
-
                 ventana_emergente.Show()
             else:
                 wx.MessageBox("No hay articulos registrados", "Información", wx.OK | wx.ICON_INFORMATION)
@@ -152,11 +153,35 @@ def Articulo():
         except Error as e:
             wx.MessageBox(f"Error al consultar articulos: {e}", "Error", wx.OK | wx.ICON_ERROR)
 
-    # Botones
+    def regresar_menu(event):
+        """Regresa al menú principal"""
+        if ventana.parent_frame:
+            ventana.parent_frame.Show()  # Mostrar el menú
+        ventana.Destroy()  # Cerrar esta ventana
+
+    def on_close(event):
+        """Maneja el evento cuando se cierra la ventana"""
+        if ventana.parent_frame:
+            ventana.parent_frame.Show()  # Mostrar el menú al cerrar
+        ventana.Destroy()
+
+    # Botones CRUD
     wx.Button(panel, label="Guardar", pos=(30, 380), size=(100, 30)).Bind(wx.EVT_BUTTON, insertar_articulo)
     wx.Button(panel, label="Actualizar", pos=(140, 380), size=(100, 30)).Bind(wx.EVT_BUTTON, actualizar_articulo)
     wx.Button(panel, label="Eliminar", pos=(250, 380), size=(100, 30)).Bind(wx.EVT_BUTTON, eliminar_articulo)
     wx.Button(panel, label="Leer", pos=(360, 380), size=(100, 30)).Bind(wx.EVT_BUTTON, leer_articulo)
+
+    def abrir_historial(event):
+        Historial_Precio()
+
+    # Botón para Historial de Precios
+    wx.Button(panel, label="Historial Precios", pos=(180, 430), size=(150, 30)).Bind(wx.EVT_BUTTON, abrir_historial)
+
+    # Botón para regresar al menú
+    wx.Button(panel, label="Regresar al menú", pos=(180, 470), size=(150, 30)).Bind(wx.EVT_BUTTON, regresar_menu)
+
+    # Manejar el evento de cerrar ventana
+    ventana.Bind(wx.EVT_CLOSE, on_close)
 
     ventana.Show()
 

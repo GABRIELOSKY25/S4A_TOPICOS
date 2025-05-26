@@ -13,8 +13,9 @@ conexion = mysql.connector.connect(
 cursor = conexion.cursor(dictionary=True)
 
 class PuntoVenta(wx.Frame):
-    def __init__(self):
+    def __init__(self, parent_frame=None):
         super().__init__(None, title="Punto de Venta COSTCO", size=(1005, 600))
+        self.parent_frame = parent_frame  # Referencia al frame padre (menú)
         panel = wx.Panel(self)
         self.detalle_venta = []
         self.total = 0.0
@@ -47,12 +48,27 @@ class PuntoVenta(wx.Frame):
         wx.StaticText(panel, label="ID Empleado:", pos=(10, 460))
         self.txt_idEmpleado = wx.TextCtrl(panel, pos=(90, 456), size=(80, -1))
 
+        # Campo de entrada para lector de código de barras
+        wx.StaticText(panel, label="Código de Barras:", pos=(740, 420))
+        self.txt_codigo_barras = wx.TextCtrl(panel, pos=(850, 416), size=(130, -1))
+        self.txt_codigo_barras.SetHint("Escanea aquí")
+        self.txt_codigo_barras.SetWindowStyleFlag(wx.TE_PROCESS_ENTER)
+        self.txt_codigo_barras.Bind(wx.EVT_TEXT_ENTER, self.on_codigo_barras)
+        self.txt_codigo_barras.SetFocus()
+
         # Botones
         wx.Button(panel, label="Agregar", pos=(10, 500), size=(100, 30)).Bind(wx.EVT_BUTTON, self.agregar_producto)
         wx.Button(panel, label="Guardar Venta", pos=(120, 500), size=(120, 30)).Bind(wx.EVT_BUTTON, self.guardar_venta)
         wx.Button(panel, label="Consultar Clientes", pos=(250, 500), size=(150, 30)).Bind(wx.EVT_BUTTON, self.consultar_clientes)
         wx.Button(panel, label="Consultar Empleado", pos=(410, 500), size=(150, 30)).Bind(wx.EVT_BUTTON, self.consultar_empleado)
         wx.Button(panel, label="Consultar Membresia", pos=(570, 500), size=(150, 30)).Bind(wx.EVT_BUTTON, self.consultar_membresia)
+        wx.Button(panel, label="Regresar al menu", pos=(730, 500), size=(150, 30)).Bind(wx.EVT_BUTTON, self.regresar_menu)
+
+        # Manejar el evento de cerrar ventana
+        self.Bind(wx.EVT_CLOSE, self.on_close)
+
+        # Manejar el evento de cerrar ventana
+        self.Bind(wx.EVT_CLOSE, self.on_close)
 
         self.Show()
 
@@ -94,6 +110,23 @@ class PuntoVenta(wx.Frame):
 
         self.detalle_venta.append((codigo, nombre, precio, cantidad, subtotal))
 
+    def on_codigo_barras(self, event):
+        codigo = self.txt_codigo_barras.GetValue().strip()
+        if not codigo:
+            return
+
+        for i in range(self.lst_productos.GetItemCount()):
+            item_codigo = self.lst_productos.GetItem(i, 0).GetText()
+            if item_codigo == codigo:
+                self.lst_productos.Select(i)
+                self.lst_productos.Focus(i)
+                self.txt_codigo_barras.SetValue("")
+                self.agregar_producto(None)
+                return
+
+        wx.MessageBox("Producto no encontrado con ese código de barras", "Error", wx.OK | wx.ICON_ERROR)
+        self.txt_codigo_barras.SetValue("")
+
     def guardar_venta(self, event):
         idCliente = self.txt_idCliente.GetValue()
         idCodigo = self.txt_idCodigo.GetValue()
@@ -134,6 +167,7 @@ class PuntoVenta(wx.Frame):
         self.txt_idCliente.SetValue("")
         self.txt_idCodigo.SetValue("")
         self.txt_idEmpleado.SetValue("")
+        self.txt_codigo_barras.SetValue("")
         self.lst_detalle.DeleteAllItems()
         self.detalle_venta = []
         self.total = 0.0
@@ -157,6 +191,18 @@ class PuntoVenta(wx.Frame):
         clientes = cursor.fetchall()
         lista = "\n".join([f"ID: {c['idCodigo']} - {c['Tipo']}" for c in clientes])
         wx.MessageBox(lista if lista else "No hay membresias registradas", "IDs de Membresia", wx.OK | wx.ICON_INFORMATION)
+
+    def regresar_menu(self, event):
+        """Regresa al menú principal"""
+        if self.parent_frame:
+            self.parent_frame.Show()  # Mostrar el menú
+        self.Close()  # Cerrar esta ventana
+
+    def on_close(self, event):
+        """Maneja el evento cuando se cierra la ventana"""
+        if self.parent_frame:
+            self.parent_frame.Show()  # Mostrar el menú al cerrar
+        self.Destroy()
 
 if __name__ == "__main__":
     app = wx.App(False)

@@ -1,6 +1,5 @@
 # Gabriel Flores Urbina
-
-#https://github.com/GABRIELOSKY25/S4A_TOPICOS
+# https://github.com/GABRIELOSKY25/S4A_TOPICOS
 
 import wx
 import mysql.connector
@@ -22,9 +21,10 @@ try:
 except Error as ex:
     print("Error al conectar:", ex)
 
-def Empleado():
-    ventana = wx.Frame(None, title='Empleado', size=(500, 450))
+def Empleado(parent_frame=None):
+    ventana = wx.Frame(None, title='Empleado', size=(500, 500))  # Aumenté el tamaño para el botón de regresar
     panel = wx.Panel(ventana)
+    ventana.parent_frame = parent_frame  # Guardar referencia al frame padre (menú)
 
     # Título
     titulo = wx.StaticText(panel, label="Empleados", pos=(180, 30))
@@ -129,11 +129,29 @@ def Empleado():
         except Error as e:
             wx.MessageBox(f"Error al consultar empleados: {e}", "Error", wx.OK | wx.ICON_ERROR)
 
-    # Botones
+    def regresar_menu(event):
+        """Regresa al menú principal"""
+        if ventana.parent_frame:
+            ventana.parent_frame.Show()  # Mostrar el menú
+        ventana.Destroy()  # Cerrar esta ventana
+
+    def on_close(event):
+        """Maneja el evento cuando se cierra la ventana"""
+        if ventana.parent_frame:
+            ventana.parent_frame.Show()  # Mostrar el menú al cerrar
+        ventana.Destroy()
+
+    # Botones CRUD
     wx.Button(panel, label="Guardar", pos=(30, 340), size=(100, 30)).Bind(wx.EVT_BUTTON, insertar_empleado)
     wx.Button(panel, label="Actualizar", pos=(140, 340), size=(100, 30)).Bind(wx.EVT_BUTTON, actualizar_empleado)
     wx.Button(panel, label="Eliminar", pos=(250, 340), size=(100, 30)).Bind(wx.EVT_BUTTON, eliminar_empleado)
     wx.Button(panel, label="Leer", pos=(360, 340), size=(100, 30)).Bind(wx.EVT_BUTTON, leer_empleado)
+    
+    # Botón para regresar al menú
+    wx.Button(panel, label="Regresar al menú", pos=(180, 400), size=(150, 30)).Bind(wx.EVT_BUTTON, regresar_menu)
+
+    # Manejar el evento de cerrar ventana
+    ventana.Bind(wx.EVT_CLOSE, on_close)
 
     ventana.Show()
 

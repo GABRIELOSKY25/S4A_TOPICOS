@@ -19,9 +19,10 @@ try:
 except Error as ex:
     print("Error al conectar:", ex)
 
-def Proveedor():
-    ventana = wx.Frame(None, title='Proveedor', size=(500, 415))
+def Proveedor(parent_frame=None):
+    ventana = wx.Frame(None, title='Proveedor', size=(500, 450))  # Aumenté el tamaño para el nuevo botón
     panel = wx.Panel(ventana)
+    ventana.parent_frame = parent_frame  # Guardar referencia al frame padre (menú)
 
     # Título
     titulo = wx.StaticText(panel, label = "Proveedor", pos = (180, 30))
@@ -122,12 +123,29 @@ def Proveedor():
         except Error as e:
             wx.MessageBox(f"Error al consultar proveedores: {e}", "Error", wx.OK | wx.ICON_ERROR)
 
+    def regresar_menu(event):
+        """Regresa al menú principal"""
+        if ventana.parent_frame:
+            ventana.parent_frame.Show()  # Mostrar el menú
+        ventana.Destroy()  # Cerrar esta ventana
 
-    # Botones
+    def on_close(event):
+        """Maneja el evento cuando se cierra la ventana"""
+        if ventana.parent_frame:
+            ventana.parent_frame.Show()  # Mostrar el menú al cerrar
+        ventana.Destroy()
+
+    # Botones CRUD
     wx.Button(panel, label="Guardar", pos=(30, 300), size=(100, 30)).Bind(wx.EVT_BUTTON, insertar_proveedor)
     wx.Button(panel, label="Actualizar", pos=(140, 300), size=(100, 30)).Bind(wx.EVT_BUTTON, actualizar_proveedor)
     wx.Button(panel, label="Eliminar", pos=(250, 300), size=(100, 30)).Bind(wx.EVT_BUTTON, eliminar_proveedor)
     wx.Button(panel, label="Leer", pos=(360, 300), size=(100, 30)).Bind(wx.EVT_BUTTON, leer_proveedor)
+    
+    # Botón para regresar al menú
+    wx.Button(panel, label="Regresar al menú", pos=(180, 350), size=(150, 30)).Bind(wx.EVT_BUTTON, regresar_menu)
+
+    # Manejar el evento de cerrar ventana
+    ventana.Bind(wx.EVT_CLOSE, on_close)
 
     ventana.Show()
 

@@ -1,12 +1,11 @@
 # Gabriel Flores Urbina
-
-#https://github.com/GABRIELOSKY25/S4A_TOPICOS
+# https://github.com/GABRIELOSKY25/S4A_TOPICOS
 
 import wx
 import mysql.connector
 from mysql.connector import Error
 
-    # Conexión a la base de datos
+# Conexión a la base de datos
 try:
     conexion = mysql.connector.connect(
         host="localhost",
@@ -20,9 +19,10 @@ try:
 except Error as ex:
     print("Error al conectar:", ex)
 
-def Membresia():
-    ventana = wx.Frame(None, title='Membresía', size=(500, 370))
+def Membresia(parent_frame=None):
+    ventana = wx.Frame(None, title='Membresía', size=(500, 400))  # Aumenté el tamaño para el botón de regresar
     panel = wx.Panel(ventana)
+    ventana.parent_frame = parent_frame  # Guardar referencia al frame padre (menú)
 
     # Título
     titulo = wx.StaticText(panel, label="Membresías", pos=(180, 30))
@@ -137,17 +137,36 @@ def Membresia():
         except Error as ex:
             wx.MessageBox(f"Error al consultar membresías: {ex}", "Error", wx.OK | wx.ICON_ERROR)
 
-    # Botones
+    def regresar_menu(event):
+        """Regresa al menú principal"""
+        if ventana.parent_frame:
+            ventana.parent_frame.Show()  # Mostrar el menú
+        ventana.Destroy()  # Cerrar esta ventana
+
+    def on_close(event):
+        """Maneja el evento cuando se cierra la ventana"""
+        if ventana.parent_frame:
+            ventana.parent_frame.Show()  # Mostrar el menú al cerrar
+        ventana.Destroy()
+
+    # Botones CRUD
     boton_Guardar = wx.Button(panel, label="Guardar", pos=(30, 260), size=(100, 30))
     boton_Actualizar = wx.Button(panel, label="Actualizar", pos=(140, 260), size=(100, 30))
     boton_Eliminar = wx.Button(panel, label="Eliminar", pos=(250, 260), size=(100, 30))
     boton_Leer = wx.Button(panel, label="Leer", pos=(360, 260), size=(100, 30))
+    
+    # Botón para regresar al menú
+    boton_Regresar = wx.Button(panel, label="Regresar al menú", pos=(180, 320), size=(150, 30))
 
     # Eventos
     boton_Guardar.Bind(wx.EVT_BUTTON, guardar_membresia)
     boton_Actualizar.Bind(wx.EVT_BUTTON, actualizar_membresia)
     boton_Eliminar.Bind(wx.EVT_BUTTON, eliminar_membresia)
     boton_Leer.Bind(wx.EVT_BUTTON, leer_membresia)
+    boton_Regresar.Bind(wx.EVT_BUTTON, regresar_menu)
+    
+    # Manejar el evento de cerrar ventana
+    ventana.Bind(wx.EVT_CLOSE, on_close)
 
     ventana.Show()
 
