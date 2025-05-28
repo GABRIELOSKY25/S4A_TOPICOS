@@ -99,30 +99,56 @@ def Proveedor(parent_frame=None):
             resultados = cursor.fetchall()
 
             if resultados:
-                ventana_emergente = wx.Frame(None, title="Listado de Proveedores", size=(600, 400))
+                # Calcular tamaño necesario basado en cantidad de registros
+                num_registros = len(resultados)
+                altura_tabla = min(400, 600 + num_registros * 25)  # Altura máxima de 400px
+                
+                # Crear ventana emergente con tamaño ajustado
+                ventana_emergente = wx.Frame(None, title="Listado de Proveedores", 
+                                        size=(800, altura_tabla + 100))  # +100 para título y márgenes
                 panel = wx.Panel(ventana_emergente)
+                
+                # Título centrado
+                titulo = wx.StaticText(panel, label="Listado de Proveedores", pos=(250, 15))
+                titulo.SetFont(wx.Font(14, wx.DEFAULT, wx.NORMAL, wx.BOLD))
 
-                wx.StaticText(panel, label="Listado de Proveedores", pos=(170, 15)).SetFont(wx.Font(14, wx.DEFAULT, wx.NORMAL, wx.BOLD))
-
-                # Encabezados
-                headers = ["ID", "Nombre", "Apellidos", "Teléfono", "Dirección"]
-                for i, header in enumerate(headers):
-                    wx.StaticText(panel, label=header, pos=(20 + i * 120, 50)).SetFont(wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD))
-
-                # Mostrar cada proveedor con separación vertical
-                for row_index, proveedor in enumerate(resultados):
-                    y = 70 + row_index * 30  # Espaciado entre filas
-                    for col_index, valor in enumerate(proveedor):
-                        wx.StaticText(panel, label=str(valor), pos=(20 + col_index * 120, y))
-
+                # Crear ListCtrl (tabla más profesional)
+                list_ctrl = wx.ListCtrl(panel, pos=(20, 50), size=(750, altura_tabla),
+                                    style=wx.LC_REPORT | wx.LC_SINGLE_SEL)
+                
+                # Configurar columnas con anchos adecuados
+                columnas = [
+                    ("ID", 80),
+                    ("Nombre", 150),
+                    ("Apellidos", 150),
+                    ("Teléfono", 150),
+                    ("Dirección", 220)
+                ]
+                
+                for i, (col_name, col_width) in enumerate(columnas):
+                    list_ctrl.InsertColumn(i, col_name, width=col_width)
+                
+                # Llenar tabla con datos
+                for proveedor in resultados:
+                    index = list_ctrl.InsertItem(list_ctrl.GetItemCount(), str(proveedor[0]))
+                    
+                    # Agregar datos a cada columna
+                    for col in range(1, 5):  # Columnas del 1 al 4
+                        list_ctrl.SetItem(index, col, str(proveedor[col]))
+                    
+                    # Color de fondo blanco para todas las filas
+                    list_ctrl.SetItemBackgroundColour(index, wx.WHITE)
+                
+                # Configuración visual
+                list_ctrl.SetBackgroundColour(wx.WHITE)
+                list_ctrl.SetForegroundColour(wx.BLACK)
+                
                 ventana_emergente.Show()
-
             else:
                 wx.MessageBox("No hay proveedores registrados", "Información", wx.OK | wx.ICON_INFORMATION)
 
         except Error as e:
             wx.MessageBox(f"Error al consultar proveedores: {e}", "Error", wx.OK | wx.ICON_ERROR)
-
     def regresar_menu(event):
         """Regresa al menú principal"""
         if ventana.parent_frame:

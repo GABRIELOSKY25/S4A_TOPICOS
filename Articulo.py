@@ -130,28 +130,55 @@ def Articulo(parent_frame=None):
             resultados = cursor.fetchall()
 
             if resultados:
-                ventana_emergente = wx.Frame(None, title="Listado de Articulos", size=(850, 500))
+                # Crear ventana emergente
+                ventana_emergente = wx.Frame(None, title="Listado de Artículos", size=(1200, 600))
                 panel = wx.Panel(ventana_emergente)
+                
+                # Título
+                titulo = wx.StaticText(panel, label="Listado de Artículos", pos=(450, 15))
+                titulo.SetFont(wx.Font(14, wx.DEFAULT, wx.NORMAL, wx.BOLD))
 
-                wx.StaticText(panel, label="Listado de Articulos", pos=(150, 15)).SetFont(wx.Font(14, wx.DEFAULT, wx.NORMAL, wx.BOLD))
-
-                # Encabezados
-                headers = ["Código Barras", "ID Categoría", "Nombre", "Precio", "Existencia", "Marca", "Características"]
-                for i, header in enumerate(headers):
-                    wx.StaticText(panel, label=header, pos=(20 + i * 100, 50)).SetFont(wx.Font(8, wx.DEFAULT, wx.NORMAL, wx.BOLD))
-
-                # Mostrar cada categoría
-                for row_index, articulo in enumerate(resultados):
-                    y = 70 + row_index * 30
-                    for col_index, valor in enumerate(articulo):
-                        wx.StaticText(panel, label=str(valor), pos=(20 + col_index * 100, y))
-
+                # Crear ListCtrl con fondo completamente blanco
+                list_ctrl = wx.ListCtrl(panel, pos=(20, 50), size=(1150, 500),
+                                    style=wx.LC_REPORT)
+                
+                # Configurar columnas
+                columnas = [
+                    ("Código Barras", 150),
+                    ("ID Categoría", 100),
+                    ("Nombre", 200),
+                    ("Precio", 100),
+                    ("Existencia", 100),
+                    ("Marca", 150),
+                    ("Características", 300)
+                ]
+                
+                for i, (col_name, col_width) in enumerate(columnas):
+                    list_ctrl.InsertColumn(i, col_name, width=col_width)
+                
+                # Llenar con datos
+                for articulo in resultados:
+                    index = list_ctrl.InsertItem(list_ctrl.GetItemCount(), str(articulo[0]))
+                    
+                    for col in range(1, 7):
+                        if col == 3:  # Columna de Precio
+                            list_ctrl.SetItem(index, col, f"${float(articulo[col]):.2f}")
+                        else:
+                            list_ctrl.SetItem(index, col, str(articulo[col]))
+                    
+                    # Fondo blanco para todas las filas
+                    list_ctrl.SetItemBackgroundColour(index, wx.WHITE)
+                
+                # Configurar color blanco para toda la tabla
+                list_ctrl.SetBackgroundColour(wx.WHITE)
+                list_ctrl.SetForegroundColour(wx.BLACK)  # Texto en negro
+                
                 ventana_emergente.Show()
             else:
-                wx.MessageBox("No hay articulos registrados", "Información", wx.OK | wx.ICON_INFORMATION)
+                wx.MessageBox("No hay artículos registrados", "Información", wx.OK | wx.ICON_INFORMATION)
 
         except Error as e:
-            wx.MessageBox(f"Error al consultar articulos: {e}", "Error", wx.OK | wx.ICON_ERROR)
+            wx.MessageBox(f"Error al consultar artículos: {e}", "Error", wx.OK | wx.ICON_ERROR)
 
     def regresar_menu(event):
         """Regresa al menú principal"""

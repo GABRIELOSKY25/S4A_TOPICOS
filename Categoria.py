@@ -84,26 +84,37 @@ def Categoria(parent_frame=None):
             resultados = cursor.fetchall()
 
             if resultados:
-                ventana_emergente = wx.Frame(None, title="Listado de Categorías", size=(500, 400))
+                # Crear ventana emergente
+                ventana_emergente = wx.Frame(None, title="Listado de Categorías", size=(600, 500))
                 panel = wx.Panel(ventana_emergente)
+                
+                # Título
+                titulo = wx.StaticText(panel, label="Listado de Categorías", pos=(200, 15))
+                titulo.SetFont(wx.Font(14, wx.DEFAULT, wx.NORMAL, wx.BOLD))
 
-                wx.StaticText(panel, label="Listado de Categorías", pos=(150, 15)).SetFont(wx.Font(14, wx.DEFAULT, wx.NORMAL, wx.BOLD))
-
-                # Encabezados
-                headers = ["ID Categoría", "Nombre"]
-                for i, header in enumerate(headers):
-                    wx.StaticText(panel, label=header, pos=(50 + i * 200, 50)).SetFont(wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD))
-
-                # Mostrar cada categoría
-                for row_index, categoria in enumerate(resultados):
-                    y = 70 + row_index * 30  # Espaciado entre filas
-                    for col_index, valor in enumerate(categoria):
-                        wx.StaticText(panel, label=str(valor), pos=(50 + col_index * 200, y))
-
+                # Crear ListCtrl en modo reporte (tabla)
+                list_ctrl = wx.ListCtrl(panel, pos=(20, 50), size=(550, 400), 
+                                    style=wx.LC_REPORT | wx.LC_HRULES | wx.LC_VRULES)
+                
+                # Configurar columnas
+                list_ctrl.InsertColumn(0, "ID Categoría", width=150)
+                list_ctrl.InsertColumn(1, "Nombre", width=380)
+                
+                # Llenar con datos
+                for categoria in resultados:
+                    index = list_ctrl.InsertItem(list_ctrl.GetItemCount(), str(categoria[0]))
+                    list_ctrl.SetItem(index, 1, str(categoria[1]))
+                    
+                    # Alternar colores de fondo para mejor legibilidad
+                    if index % 2 == 0:
+                        list_ctrl.SetItemBackgroundColour(index, wx.Colour(240, 240, 240))
+                    else:
+                        list_ctrl.SetItemBackgroundColour(index, wx.WHITE)
+                
                 ventana_emergente.Show()
             else:
                 wx.MessageBox("No hay categorías registradas", "Información", wx.OK | wx.ICON_INFORMATION)
-
+                
         except Error as e:
             wx.MessageBox(f"Error al consultar categorías: {e}", "Error", wx.OK | wx.ICON_ERROR)
 

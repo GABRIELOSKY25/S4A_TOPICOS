@@ -106,22 +106,54 @@ def Empleado(parent_frame=None):
             resultados = cursor.fetchall()
 
             if resultados:
-                ventana_emergente = wx.Frame(None, title="Listado de Empleados", size=(800, 500))
+                # Crear ventana con tamaño ajustable
+                ventana_emergente = wx.Frame(None, title="Listado de Empleados", size=(900, 600))
                 panel = wx.Panel(ventana_emergente)
+                
+                # Título centrado
+                titulo = wx.StaticText(panel, label="Listado de Empleados", pos=(350, 15))
+                titulo.SetFont(wx.Font(14, wx.DEFAULT, wx.NORMAL, wx.BOLD))
 
-                wx.StaticText(panel, label="Listado de Empleados", pos=(300, 15)).SetFont(wx.Font(14, wx.DEFAULT, wx.NORMAL, wx.BOLD))
-
-                headers = ["ID", "Nombre", "Apellido", "Puesto", "Salario"]
-                for i, header in enumerate(headers):
-                    wx.StaticText(panel, label=header, pos=(20 + i * 150, 50)).SetFont(wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD))
-
-                for row_index, empleado in enumerate(resultados):
-                    y = 70 + row_index * 30
-                    for col_index, valor in enumerate(empleado):
-                        if col_index == len(empleado)-1:
-                            valor = f"${float(valor):,.2f}"
-                        wx.StaticText(panel, label=str(valor), pos=(20 + col_index * 150, y))
-
+                # Crear ListCtrl (tabla más profesional)
+                list_ctrl = wx.ListCtrl(panel, pos=(20, 50), size=(850, 500),
+                                    style=wx.LC_REPORT | wx.LC_SINGLE_SEL)
+                
+                # Configurar columnas con anchos adecuados
+                columnas = [
+                    ("ID", 80),
+                    ("Nombre", 200),
+                    ("Apellido", 200),
+                    ("Puesto", 200),
+                    ("Salario", 150)
+                ]
+                
+                for i, (col_name, col_width) in enumerate(columnas):
+                    list_ctrl.InsertColumn(i, col_name, width=col_width)
+                
+                # Llenar tabla con datos
+                for empleado in resultados:
+                    index = list_ctrl.InsertItem(list_ctrl.GetItemCount(), str(empleado[0]))
+                    
+                    # Agregar datos a cada columna
+                    list_ctrl.SetItem(index, 1, empleado[1])  # Nombre
+                    list_ctrl.SetItem(index, 2, empleado[2])  # Apellido
+                    list_ctrl.SetItem(index, 3, empleado[3])  # Puesto
+                    
+                    # Formatear salario como moneda
+                    salario_formateado = f"${float(empleado[4]):,.2f}"
+                    list_ctrl.SetItem(index, 4, salario_formateado)
+                    
+                    # Color de fondo blanco para todas las filas
+                    list_ctrl.SetItemBackgroundColour(index, wx.WHITE)
+                
+                # Configuración visual adicional
+                list_ctrl.SetBackgroundColour(wx.WHITE)
+                list_ctrl.SetForegroundColour(wx.BLACK)
+                
+                # Ajustar automáticamente el tamaño de las filas
+                for i in range(list_ctrl.GetItemCount()):
+                    list_ctrl.SetItemState(i, wx.LIST_STATE_SELECTED, wx.LIST_STATE_SELECTED)
+                
                 ventana_emergente.Show()
             else:
                 wx.MessageBox("No hay empleados registrados", "Información", wx.OK | wx.ICON_INFORMATION)

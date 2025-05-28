@@ -106,30 +106,53 @@ def Membresia(parent_frame=None):
             resultados = cursor.fetchall()
 
             if resultados:
-                ventana_emergente = wx.Frame(None, title="Listado de Membresías", size=(800, 500))
+                # Crear ventana con tamaño adecuado
+                ventana_emergente = wx.Frame(None, title="Listado de Membresías", size=(900, 600))
                 panel = wx.Panel(ventana_emergente)
+                
+                # Título centrado
+                titulo = wx.StaticText(panel, label="Listado de Membresías", pos=(350, 15))
+                titulo.SetFont(wx.Font(14, wx.DEFAULT, wx.NORMAL, wx.BOLD))
 
-                wx.StaticText(panel, label="Listado de Membresías", pos=(300, 15)).SetFont(wx.Font(14, wx.DEFAULT, wx.NORMAL, wx.BOLD))
-
-                # Encabezados
-                headers = ["Código", "Fecha Activación", "Fecha Vigencia", "Tipo"]
-                for i, header in enumerate(headers):
-                    wx.StaticText(panel, label=header, pos=(20 + i * 180, 50)).SetFont(wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD))
-
-                # Mostrar cada membresía
-                for row_index, membresia in enumerate(resultados):
-                    y = 70 + row_index * 30  # Espaciado entre filas
-                    for col_index, valor in enumerate(membresia):
-                        # Formatear fechas si es necesario
-                        if col_index in [1, 2] and valor:  # Columnas de fecha
-                            valor = str(valor).split()[0]  # Mostrar solo la fecha sin la hora
-                        wx.StaticText(panel, label=str(valor), pos=(20 + col_index * 180, y))
-
-                # Añadir barra de desplazamiento si hay muchos registros
-                if len(resultados) > 10:
-                    scroll = wx.ScrollBar(panel, pos=(0, 450), size=(800, 20), style=wx.SB_HORIZONTAL)
-                    scroll.SetScrollbar(0, 10, len(resultados), 1)
-
+                # Crear ListCtrl (tabla más profesional)
+                list_ctrl = wx.ListCtrl(panel, pos=(20, 50), size=(850, 500),
+                                    style=wx.LC_REPORT | wx.LC_SINGLE_SEL)
+                
+                # Configurar columnas con anchos adecuados
+                columnas = [
+                    ("Código", 150),
+                    ("Fecha Activación", 200),
+                    ("Fecha Vigencia", 200),
+                    ("Tipo", 250)
+                ]
+                
+                for i, (col_name, col_width) in enumerate(columnas):
+                    list_ctrl.InsertColumn(i, col_name, width=col_width)
+                
+                # Llenar tabla con datos
+                for membresia in resultados:
+                    index = list_ctrl.InsertItem(list_ctrl.GetItemCount(), str(membresia[0]))
+                    
+                    # Formatear fechas (mostrar solo fecha sin hora)
+                    fecha_activacion = str(membresia[1]).split()[0] if membresia[1] else ""
+                    fecha_vigencia = str(membresia[2]).split()[0] if membresia[2] else ""
+                    
+                    # Agregar datos a cada columna
+                    list_ctrl.SetItem(index, 1, fecha_activacion)
+                    list_ctrl.SetItem(index, 2, fecha_vigencia)
+                    list_ctrl.SetItem(index, 3, str(membresia[3]))
+                    
+                    # Color de fondo blanco para todas las filas
+                    list_ctrl.SetItemBackgroundColour(index, wx.WHITE)
+                
+                # Configuración visual adicional
+                list_ctrl.SetBackgroundColour(wx.WHITE)
+                list_ctrl.SetForegroundColour(wx.BLACK)
+                
+                # Ajustar automáticamente el tamaño de las filas
+                for i in range(list_ctrl.GetItemCount()):
+                    list_ctrl.SetItemState(i, wx.LIST_STATE_SELECTED, wx.LIST_STATE_SELECTED)
+                
                 ventana_emergente.Show()
             else:
                 wx.MessageBox("No hay membresías registradas", "Información", wx.OK | wx.ICON_INFORMATION)

@@ -118,20 +118,44 @@ def Cliente(parent_frame=None):
             resultados = cursor.fetchall()
 
             if resultados:
-                ventana_emergente = wx.Frame(None, title="Listado de Clientes", size=(900, 500))
+                ventana_emergente = wx.Frame(None, title="Listado de Clientes", size=(1100, 600))
                 panel = wx.Panel(ventana_emergente)
 
-                wx.StaticText(panel, label="Listado de Clientes", pos=(330, 15)).SetFont(wx.Font(14, wx.DEFAULT, wx.NORMAL, wx.BOLD))
+                # Título
+                titulo = wx.StaticText(panel, label="Listado de Clientes", pos=(400, 15))
+                titulo.SetFont(wx.Font(14, wx.DEFAULT, wx.NORMAL, wx.BOLD))
 
-                headers = ["ID", "Código", "Nombre", "Apellidos", "Edad", "Correo", "Teléfono", "Dirección"]
-                for i, header in enumerate(headers):
-                    wx.StaticText(panel, label=header, pos=(10 + i * 110, 50)).SetFont(wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD))
-
-                for row_index, cliente in enumerate(resultados):
-                    y = 70 + row_index * 25
-                    for col_index, valor in enumerate(cliente):
-                        wx.StaticText(panel, label=str(valor), pos=(10 + col_index * 110, y))
-
+                # Crear ListCtrl en modo reporte (tabla)
+                list_ctrl = wx.ListCtrl(panel, pos=(10, 50), size=(1060, 500), 
+                                    style=wx.LC_REPORT | wx.LC_HRULES | wx.LC_VRULES)
+                
+                # Configurar columnas
+                columnas = [
+                    ("ID Cliente", 100),
+                    ("Código", 100),
+                    ("Nombre", 150),
+                    ("Apellidos", 150),
+                    ("Edad", 80),
+                    ("Correo", 200),
+                    ("Teléfono", 120),
+                    ("Dirección", 200)
+                ]
+                
+                for i, (col_name, col_width) in enumerate(columnas):
+                    list_ctrl.InsertColumn(i, col_name, width=col_width)
+                
+                # Llenar con datos
+                for cliente in resultados:
+                    index = list_ctrl.InsertItem(list_ctrl.GetItemCount(), str(cliente[0]))
+                    for i in range(1, 8):
+                        list_ctrl.SetItem(index, i, str(cliente[i]))
+                    
+                    # Alternar colores de fondo
+                    if index % 2 == 0:
+                        list_ctrl.SetItemBackgroundColour(index, wx.Colour(240, 240, 240))
+                    else:
+                        list_ctrl.SetItemBackgroundColour(index, wx.WHITE)
+                
                 ventana_emergente.Show()
             else:
                 wx.MessageBox("No hay clientes registrados", "Información", wx.OK | wx.ICON_INFORMATION)
