@@ -93,6 +93,8 @@ CREATE TABLE `Pedido` (
   `Fecha_Pedido` DATETIME NOT NULL,
   `Fecha_Entrega` DATETIME NOT NULL,
   `Importe` DECIMAL(10,2) NOT NULL,
+  `Pago` DECIMAL(10,2) NOT NULL,
+  `Cambio` DECIMAL(10,2) NOT NULL,
   `Estado` ENUM('Preparando', 'Enviado', 'Entregado'),
   PRIMARY KEY (`idPedido`),
   FOREIGN KEY (`idProveedor`) REFERENCES `Proveedor` (`idProveedor`)
@@ -117,6 +119,8 @@ CREATE TABLE `Venta` (
   `idCodigo` CHAR(13) NOT NULL,
   `idEmpleado` INT NOT NULL,
   `Importe` DECIMAL(10,2) NOT NULL,
+  `Pago` DECIMAL(10,2) NOT NULL,
+  `Cambio` DECIMAL(10,2) NOT NULL,
   `Fecha_Hora` DATE,
   PRIMARY KEY (`idVenta`),
   FOREIGN KEY (`idCliente`, `idCodigo`) REFERENCES `Cliente` (`idCliente`, `idCodigo`),
@@ -138,7 +142,8 @@ CREATE TABLE `Detalles_Venta` (
 -- Restaurar configuración anterior
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
-SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS
+SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
+
 
 -- Insertar los Categorias
 INSERT INTO categoria (idCategoria, Nombre) VALUES 

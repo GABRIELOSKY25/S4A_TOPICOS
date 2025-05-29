@@ -149,6 +149,7 @@ def Proveedor(parent_frame=None):
 
         except Error as e:
             wx.MessageBox(f"Error al consultar proveedores: {e}", "Error", wx.OK | wx.ICON_ERROR)
+    
     def regresar_menu(event):
         """Regresa al menú principal"""
         if ventana.parent_frame:
