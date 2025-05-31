@@ -22,9 +22,9 @@ except Error as ex:
     print("Error al conectar:", ex)
 
 def Empleado(parent_frame=None):
-    ventana = wx.Frame(None, title='Empleado', size=(500, 500))  # Aumenté el tamaño para el botón de regresar
+    ventana = wx.Frame(None, title='Empleado', size=(500, 500))  
     panel = wx.Panel(ventana)
-    ventana.parent_frame = parent_frame  # Guardar referencia al frame padre (menú)
+    ventana.parent_frame = parent_frame  
 
     # Título
     titulo = wx.StaticText(panel, label="Empleados", pos=(180, 30))
@@ -106,19 +106,15 @@ def Empleado(parent_frame=None):
             resultados = cursor.fetchall()
 
             if resultados:
-                # Crear ventana con tamaño ajustable
                 ventana_emergente = wx.Frame(None, title="Listado de Empleados", size=(900, 600))
                 panel = wx.Panel(ventana_emergente)
                 
-                # Título centrado
                 titulo = wx.StaticText(panel, label="Listado de Empleados", pos=(350, 15))
                 titulo.SetFont(wx.Font(14, wx.DEFAULT, wx.NORMAL, wx.BOLD))
 
-                # Crear ListCtrl (tabla más profesional)
                 list_ctrl = wx.ListCtrl(panel, pos=(20, 50), size=(850, 500),
                                     style=wx.LC_REPORT | wx.LC_SINGLE_SEL)
                 
-                # Configurar columnas con anchos adecuados
                 columnas = [
                     ("ID", 80),
                     ("Nombre", 200),
@@ -130,27 +126,21 @@ def Empleado(parent_frame=None):
                 for i, (col_name, col_width) in enumerate(columnas):
                     list_ctrl.InsertColumn(i, col_name, width=col_width)
                 
-                # Llenar tabla con datos
                 for empleado in resultados:
                     index = list_ctrl.InsertItem(list_ctrl.GetItemCount(), str(empleado[0]))
-                    
-                    # Agregar datos a cada columna
+
                     list_ctrl.SetItem(index, 1, empleado[1])  # Nombre
                     list_ctrl.SetItem(index, 2, empleado[2])  # Apellido
                     list_ctrl.SetItem(index, 3, empleado[3])  # Puesto
                     
-                    # Formatear salario como moneda
                     salario_formateado = f"${float(empleado[4]):,.2f}"
                     list_ctrl.SetItem(index, 4, salario_formateado)
                     
-                    # Color de fondo blanco para todas las filas
                     list_ctrl.SetItemBackgroundColour(index, wx.WHITE)
-                
-                # Configuración visual adicional
+
                 list_ctrl.SetBackgroundColour(wx.WHITE)
                 list_ctrl.SetForegroundColour(wx.BLACK)
                 
-                # Ajustar automáticamente el tamaño de las filas
                 for i in range(list_ctrl.GetItemCount()):
                     list_ctrl.SetItemState(i, wx.LIST_STATE_SELECTED, wx.LIST_STATE_SELECTED)
                 
@@ -164,13 +154,13 @@ def Empleado(parent_frame=None):
     def regresar_menu(event):
         """Regresa al menú principal"""
         if ventana.parent_frame:
-            ventana.parent_frame.Show()  # Mostrar el menú
-        ventana.Destroy()  # Cerrar esta ventana
+            ventana.parent_frame.Show()  
+        ventana.Destroy()  
 
     def on_close(event):
         """Maneja el evento cuando se cierra la ventana"""
         if ventana.parent_frame:
-            ventana.parent_frame.Show()  # Mostrar el menú al cerrar
+            ventana.parent_frame.Show() 
         ventana.Destroy()
 
     # Botones CRUD

@@ -1,7 +1,11 @@
+# Gabriel Flores Urbina
+# https://github.com/GABRIELOSKY25/S4A_TOPICOS
+
 import wx
 import mysql.connector
-from datetime import datetime
 import textwrap
+from datetime import datetime
+from mysql.connector import Error
 
 # Conexión a la base de datos MySQL
 conexion = mysql.connector.connect(
@@ -15,8 +19,8 @@ cursor = conexion.cursor(dictionary=True)
 
 class PuntoVenta(wx.Frame):
     def __init__(self, parent_frame=None):
-        super().__init__(None, title="Punto de Venta COSTCO", size=(1005, 600))
-        self.parent_frame = parent_frame  # Referencia al frame padre (menú)
+        super().__init__(None, title="Punto de Venta COSTCO", size=(1005, 620))
+        self.parent_frame = parent_frame  
         panel = wx.Panel(self)
         self.detalle_venta = []
         self.total = 0.0
@@ -43,7 +47,7 @@ class PuntoVenta(wx.Frame):
         wx.StaticText(panel, label="ID Cliente:", pos=(10, 420))
         self.txt_idCliente = wx.TextCtrl(panel, pos=(90, 416), size=(80, -1))
 
-        wx.StaticText(panel, label="Código Membresía:", pos=(180, 420))
+        wx.StaticText(panel, label="Código Membresía:", pos=(190, 420))
         self.txt_idCodigo = wx.TextCtrl(panel, pos=(310, 416), size=(120, -1))
 
         wx.StaticText(panel, label="ID Empleado:", pos=(10, 460))
@@ -59,11 +63,12 @@ class PuntoVenta(wx.Frame):
 
         # Botones
         wx.Button(panel, label="Agregar", pos=(10, 500), size=(100, 30)).Bind(wx.EVT_BUTTON, self.agregar_producto)
+        wx.Button(panel, label="Eliminar", pos=(10, 535), size=(100, 30)).Bind(wx.EVT_BUTTON, self.eliminar_producto)  # Nuevo botón
         wx.Button(panel, label="Guardar Venta", pos=(120, 500), size=(120, 30)).Bind(wx.EVT_BUTTON, self.guardar_venta)
-        wx.Button(panel, label="Consultar Clientes", pos=(250, 500), size=(150, 30)).Bind(wx.EVT_BUTTON, self.consultar_clientes)
-        wx.Button(panel, label="Consultar Empleado", pos=(410, 500), size=(150, 30)).Bind(wx.EVT_BUTTON, self.consultar_empleado)
-        wx.Button(panel, label="Consultar Membresia", pos=(570, 500), size=(150, 30)).Bind(wx.EVT_BUTTON, self.consultar_membresia)
-        wx.Button(panel, label="Regresar al menu", pos=(730, 500), size=(150, 30)).Bind(wx.EVT_BUTTON, self.regresar_menu)
+        wx.Button(panel, label="Consultar Clientes", pos=(250, 500), size=(150, 30)).Bind(wx.EVT_BUTTON, self.leer_cliente)
+        wx.Button(panel, label="Consultar Empleado", pos=(410, 500), size=(150, 30)).Bind(wx.EVT_BUTTON, self.leer_empleado)
+        wx.Button(panel, label="Consultar Membresia", pos=(570, 500), size=(150, 30)).Bind(wx.EVT_BUTTON, self.leer_membresia)
+        wx.Button(panel, label="Regresar al menu", pos=(849, 500), size=(134, 30)).Bind(wx.EVT_BUTTON, self.regresar_menu)
 
         # Manejar el evento de cerrar ventana
         self.Bind(wx.EVT_CLOSE, self.on_close)
@@ -90,7 +95,6 @@ class PuntoVenta(wx.Frame):
         precio = float(self.lst_productos.GetItem(index, 2).GetText())
         existencia_total = int(self.lst_productos.GetItem(index, 3).GetText())
 
-        # Calcular existencia disponible (restando lo ya agregado)
         cantidad_ya_agregada = sum([item[3] for item in self.detalle_venta if item[0] == codigo])
         existencia_disponible = existencia_total - cantidad_ya_agregada
 
@@ -107,57 +111,146 @@ class PuntoVenta(wx.Frame):
         if cantidad <= 0:
             return
 
-        # Verificar si el producto ya está en el detalle
         producto_existente = next((item for item in self.detalle_venta if item[0] == codigo), None)
         
         if producto_existente:
-            # Actualizar cantidad y subtotal
             idx = self.detalle_venta.index(producto_existente)
             nueva_cantidad = producto_existente[3] + cantidad
             nuevo_subtotal = nueva_cantidad * precio
-            
-            # Actualizar lista detalle
+
             for i in range(self.lst_detalle.GetItemCount()):
                 if self.lst_detalle.GetItem(i, 0).GetText() == nombre:
                     self.lst_detalle.SetItem(i, 1, str(nueva_cantidad))
                     self.lst_detalle.SetItem(i, 2, f"{nuevo_subtotal:.2f}")
                     break
-            
-            # Actualizar detalle_venta
+
             self.detalle_venta[idx] = (codigo, nombre, precio, nueva_cantidad, nuevo_subtotal)
         else:
-            # Agregar nuevo producto
             subtotal = precio * cantidad
             index_detalle = self.lst_detalle.InsertItem(self.lst_detalle.GetItemCount(), nombre)
             self.lst_detalle.SetItem(index_detalle, 1, str(cantidad))
             self.lst_detalle.SetItem(index_detalle, 2, f"{subtotal:.2f}")
             self.detalle_venta.append((codigo, nombre, precio, cantidad, subtotal))
 
-        # Actualizar total
         self.total = sum(item[4] for item in self.detalle_venta)
         self.txt_total.SetValue(f"{self.total:.2f}")
 
-    def on_codigo_barras(self, event):
-        codigo = self.txt_codigo_barras.GetValue().strip()
-        if not codigo:
+    def eliminar_producto(self, event):
+        """Elimina el producto seleccionado del detalle de venta, permitiendo seleccionar cantidad a eliminar"""
+        index = self.lst_detalle.GetFirstSelected()
+        if index == -1:
+            wx.MessageBox("Seleccione un producto del detalle para eliminar", "Advertencia", wx.OK | wx.ICON_WARNING)
             return
 
+        nombre_producto = self.lst_detalle.GetItem(index, 0).GetText()
+        cantidad_actual = int(self.lst_detalle.GetItem(index, 1).GetText())
+        precio_unitario = float(self.detalle_venta[index][2])  
+
+        cantidad = wx.GetNumberFromUser(
+            f"Ingrese cantidad a eliminar de '{nombre_producto}'\n(En detalle: {cantidad_actual})", 
+            "Cantidad a eliminar:", 
+            "Eliminar Producto", 
+            1, 1, cantidad_actual)
+        
+        if cantidad <= 0:
+            return 
+
+        producto = self.detalle_venta[index]
+        
+        if cantidad == cantidad_actual:
+            self.lst_detalle.DeleteItem(index)
+            self.detalle_venta.pop(index)
+        else:
+            nueva_cantidad = cantidad_actual - cantidad
+            nuevo_subtotal = nueva_cantidad * precio_unitario
+            
+            self.lst_detalle.SetItem(index, 1, str(nueva_cantidad))
+            self.lst_detalle.SetItem(index, 2, f"{nuevo_subtotal:.2f}")
+            
+            self.detalle_venta[index] = (
+                producto[0],  
+                producto[1],  
+                producto[2],  
+                nueva_cantidad,
+                nuevo_subtotal
+            )
+
+        self.total = sum(item[4] for item in self.detalle_venta)
+        self.txt_total.SetValue(f"{self.total:.2f}")
+        
+        self.cargar_productos()
+
+    def on_codigo_barras(self, event):
+        codigo = self.txt_codigo_barras.GetValue().strip()
+
+        self.txt_codigo_barras.SetValue("")
+        
+        if not codigo:
+            return
+        
+        wx.CallLater(100, self.procesar_codigo_barras, codigo)
+
+    def procesar_codigo_barras(self, codigo):
+        """Procesa el código de barras después de un pequeño retraso"""
         encontrado = False
+        
         for i in range(self.lst_productos.GetItemCount()):
             item_codigo = self.lst_productos.GetItem(i, 0).GetText()
             if item_codigo == codigo:
                 self.lst_productos.Select(i)
                 self.lst_productos.Focus(i)
                 encontrado = True
-                # Agregar el producto
-                self.agregar_producto(None)
+                
+                nombre = self.lst_productos.GetItem(i, 1).GetText()
+                precio = float(self.lst_productos.GetItem(i, 2).GetText())
+                existencia_total = int(self.lst_productos.GetItem(i, 3).GetText())
+
+                cantidad_ya_agregada = sum([item[3] for item in self.detalle_venta if item[0] == codigo])
+                existencia_disponible = existencia_total - cantidad_ya_agregada
+
+                if existencia_disponible <= 0:
+                    wx.MessageBox(f"No hay suficiente existencia de '{nombre}'. Existencia total: {existencia_total}, ya agregados: {cantidad_ya_agregada}", 
+                                "Advertencia", wx.OK | wx.ICON_WARNING)
+                    return
+
+                cantidad = wx.GetNumberFromUser(
+                    f"Ingrese cantidad para '{nombre}'\n(Disponible: {existencia_disponible})", 
+                    "Cantidad:", 
+                    "Cantidad", 
+                    1, 1, existencia_disponible)
+                
+                if cantidad <= 0:
+                    return
+
+                producto_existente = next((item for item in self.detalle_venta if item[0] == codigo), None)
+                
+                if producto_existente:
+                    idx = self.detalle_venta.index(producto_existente)
+                    nueva_cantidad = producto_existente[3] + cantidad
+                    nuevo_subtotal = nueva_cantidad * precio
+                    
+                    for j in range(self.lst_detalle.GetItemCount()):
+                        if self.lst_detalle.GetItem(j, 0).GetText() == nombre:
+                            self.lst_detalle.SetItem(j, 1, str(nueva_cantidad))
+                            self.lst_detalle.SetItem(j, 2, f"{nuevo_subtotal:.2f}")
+                            break
+                    
+                    self.detalle_venta[idx] = (codigo, nombre, precio, nueva_cantidad, nuevo_subtotal)
+                else:
+                    subtotal = precio * cantidad
+                    index_detalle = self.lst_detalle.InsertItem(self.lst_detalle.GetItemCount(), nombre)
+                    self.lst_detalle.SetItem(index_detalle, 1, str(cantidad))
+                    self.lst_detalle.SetItem(index_detalle, 2, f"{subtotal:.2f}")
+                    self.detalle_venta.append((codigo, nombre, precio, cantidad, subtotal))
+
+                self.total = sum(item[4] for item in self.detalle_venta)
+                self.txt_total.SetValue(f"{self.total:.2f}")
+                
                 break
 
         if not encontrado:
             wx.MessageBox("Producto no encontrado con ese código de barras", "Error", wx.OK | wx.ICON_ERROR)
         
-        # Limpiar y regresar el foco al campo de código de barras
-        self.txt_codigo_barras.SetValue("")
         self.txt_codigo_barras.SetFocus()
 
     def guardar_venta(self, event):
@@ -169,7 +262,6 @@ class PuntoVenta(wx.Frame):
             wx.MessageBox("Complete todos los campos y agregue productos", "Error", wx.OK | wx.ICON_ERROR)
             return
 
-        # Mostrar diálogo para ingresar el pago
         dlg = wx.TextEntryDialog(self, f"Ingrese el monto con el que paga el cliente (Total: ${self.total:.2f})", "Pago")
         dlg.SetValue(f"{self.total:.2f}")
 
@@ -194,7 +286,6 @@ class PuntoVenta(wx.Frame):
             result = cursor.fetchone()
             idVenta = result["nuevo_id"] if result["nuevo_id"] is not None else 1
 
-            # Obtener información del cliente, empleado y membresía para el ticket
             cursor.execute("SELECT Nombre FROM Cliente WHERE idCliente = %s", (idCliente,))
             cliente = cursor.fetchone()
             nombre_cliente = cliente["Nombre"] if cliente else "Cliente no encontrado"
@@ -207,11 +298,9 @@ class PuntoVenta(wx.Frame):
             membresia = cursor.fetchone()
             tipo_membresia = membresia["Tipo"] if membresia else "Membresía no encontrada"
 
-            # Verificar que todos los valores necesarios estén presentes
             if None in (idVenta, idCliente, idCodigo, idEmpleado, self.total, pago, cambio, fecha_hora):
                 raise ValueError("Uno o más valores requeridos para la venta son nulos")
 
-            # INSERT con todos los campos necesarios
             query = """
                 INSERT INTO Venta (idVenta, idCliente, idCodigo, idEmpleado, Importe, Pago, Cambio, Fecha_Hora)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
@@ -241,9 +330,7 @@ class PuntoVenta(wx.Frame):
         finally:
             dlg.Destroy()
 
-
     def generar_ticket(self, id_venta, fecha_hora, nombre_cliente, nombre_empleado, tipo_membresia, pago, cambio):
-        # Crear el contenido del ticket
         ticket = f"""
         {'COSTCO'.center(50)}
         {'Punto de Venta'.center(50)}
@@ -277,7 +364,6 @@ class PuntoVenta(wx.Frame):
         {'Vuelva pronto'.center(50)}
         """
         
-        # Mostrar el ticket en un diálogo
         dlg = wx.Dialog(self, title="Ticket de Venta", size=(600, 700))
         panel = wx.Panel(dlg)
         text = wx.TextCtrl(panel, value=ticket, style=wx.TE_MULTILINE|wx.TE_READONLY|wx.HSCROLL)
@@ -314,34 +400,180 @@ class PuntoVenta(wx.Frame):
         self.txt_total.SetValue("")
         self.cargar_productos()
 
-    def consultar_clientes(self, event):
-        cursor.execute("SELECT idCliente, Nombre FROM Cliente")
-        clientes = cursor.fetchall()
-        lista = "\n".join([f"ID: {c['idCliente']} - {c['Nombre']}" for c in clientes])
-        wx.MessageBox(lista if lista else "No hay clientes registrados", "IDs de Clientes", wx.OK | wx.ICON_INFORMATION)
+    def leer_cliente(self, event):
+        try:
+            query = "SELECT idCliente, idCodigo, Nombre, Apellidos, Edad, Correo, Telefono, Direccion FROM cliente"
+            cursor.execute(query)
+            resultados = cursor.fetchall()
 
-    def consultar_empleado(self, event):
-        cursor.execute("SELECT idEmpleado, Nombre FROM Empleado")
-        clientes = cursor.fetchall()
-        lista = "\n".join([f"ID: {c['idEmpleado']} - {c['Nombre']}" for c in clientes])
-        wx.MessageBox(lista if lista else "No hay empleados registrados", "IDs de Empleados", wx.OK | wx.ICON_INFORMATION)
+            if resultados:
+                ventana_emergente = wx.Frame(None, title="Listado de Clientes", size=(1100, 600))
+                panel = wx.Panel(ventana_emergente)
 
-    def consultar_membresia(self, event):
-        cursor.execute("SELECT idCodigo, Tipo FROM Membresia")
-        clientes = cursor.fetchall()
-        lista = "\n".join([f"ID: {c['idCodigo']} - {c['Tipo']}" for c in clientes])
-        wx.MessageBox(lista if lista else "No hay membresias registradas", "IDs de Membresia", wx.OK | wx.ICON_INFORMATION)
+                titulo = wx.StaticText(panel, label="Listado de Clientes", pos=(400, 15))
+                titulo.SetFont(wx.Font(14, wx.DEFAULT, wx.NORMAL, wx.BOLD))
+
+                list_ctrl = wx.ListCtrl(panel, pos=(10, 50), size=(1060, 500), 
+                                    style=wx.LC_REPORT | wx.LC_HRULES | wx.LC_VRULES)
+                
+                columnas = [
+                    ("ID Cliente", 100),
+                    ("Código", 100),
+                    ("Nombre", 150),
+                    ("Apellidos", 150),
+                    ("Edad", 80),
+                    ("Correo", 200),
+                    ("Teléfono", 120),
+                    ("Dirección", 200)
+                ]
+                
+                for i, (col_name, col_width) in enumerate(columnas):
+                    list_ctrl.InsertColumn(i, col_name, width=col_width)
+                
+                for cliente in resultados:
+                    id_cliente = str(cliente["idCliente"])
+                    codigo = str(cliente["idCodigo"])
+                    nombre = str(cliente["Nombre"])
+                    apellidos = str(cliente["Apellidos"])
+                    edad = str(cliente["Edad"]) if cliente["Edad"] is not None else ""
+                    correo = str(cliente["Correo"]) if cliente["Correo"] is not None else ""
+                    telefono = str(cliente["Telefono"]) if cliente["Telefono"] is not None else ""
+                    direccion = str(cliente["Direccion"]) if cliente["Direccion"] is not None else ""
+
+                    index = list_ctrl.InsertItem(list_ctrl.GetItemCount(), id_cliente)
+                    list_ctrl.SetItem(index, 1, codigo)
+                    list_ctrl.SetItem(index, 2, nombre)
+                    list_ctrl.SetItem(index, 3, apellidos)
+                    list_ctrl.SetItem(index, 4, edad)
+                    list_ctrl.SetItem(index, 5, correo)
+                    list_ctrl.SetItem(index, 6, telefono)
+                    list_ctrl.SetItem(index, 7, direccion)
+                    
+                    if index % 2 == 0:
+                        list_ctrl.SetItemBackgroundColour(index, wx.Colour(240, 240, 240))
+                    else:
+                        list_ctrl.SetItemBackgroundColour(index, wx.WHITE)
+                
+                ventana_emergente.Show()
+            else:
+                wx.MessageBox("No hay clientes registrados", "Información", wx.OK | wx.ICON_INFORMATION)
+        except Error as e:
+            wx.MessageBox(f"Error al consultar clientes: {e}", "Error", wx.OK | wx.ICON_ERROR)
+
+    def leer_empleado(self, event):
+        try:
+            query = "SELECT idEmpleado, Nombre, Apellido, Puesto, Salario FROM empleado"
+            cursor.execute(query)
+            resultados = cursor.fetchall()
+
+            if resultados:
+                ventana_emergente = wx.Frame(None, title="Listado de Empleados", size=(900, 600))
+                panel = wx.Panel(ventana_emergente)
+                
+                titulo = wx.StaticText(panel, label="Listado de Empleados", pos=(350, 15))
+                titulo.SetFont(wx.Font(14, wx.DEFAULT, wx.NORMAL, wx.BOLD))
+
+                list_ctrl = wx.ListCtrl(panel, pos=(20, 50), size=(850, 500),
+                                    style=wx.LC_REPORT | wx.LC_SINGLE_SEL)
+                
+                columnas = [
+                    ("ID", 80),
+                    ("Nombre", 200),
+                    ("Apellido", 200),
+                    ("Puesto", 200),
+                    ("Salario", 150)
+                ]
+                
+                for i, (col_name, col_width) in enumerate(columnas):
+                    list_ctrl.InsertColumn(i, col_name, width=col_width)
+
+                for empleado in resultados:
+                    index = list_ctrl.InsertItem(list_ctrl.GetItemCount(), str(empleado["idEmpleado"]))
+                    
+                    list_ctrl.SetItem(index, 1, empleado["Nombre"])
+                    list_ctrl.SetItem(index, 2, empleado["Apellido"])
+                    list_ctrl.SetItem(index, 3, empleado["Puesto"])
+
+                    salario_formateado = f"${float(empleado['Salario']):,.2f}"
+                    list_ctrl.SetItem(index, 4, salario_formateado)
+
+                    list_ctrl.SetItemBackgroundColour(index, wx.WHITE)
+                
+                list_ctrl.SetBackgroundColour(wx.WHITE)
+                list_ctrl.SetForegroundColour(wx.BLACK)
+
+                for i in range(list_ctrl.GetItemCount()):
+                    list_ctrl.SetItemState(i, wx.LIST_STATE_SELECTED, wx.LIST_STATE_SELECTED)
+                
+                ventana_emergente.Show()
+            else:
+                wx.MessageBox("No hay empleados registrados", "Información", wx.OK | wx.ICON_INFORMATION)
+
+        except Error as e:
+            wx.MessageBox(f"Error al consultar empleados: {e}", "Error", wx.OK | wx.ICON_ERROR)
+
+    def leer_membresia(self, event):
+        try:
+            query = "SELECT idCodigo, Fecha_Activacion, Fecha_Vigencia, Tipo FROM membresia"
+            cursor.execute(query)
+            resultados = cursor.fetchall()
+
+            if resultados:
+                ventana_emergente = wx.Frame(None, title="Listado de Membresías", size=(900, 600))
+                panel = wx.Panel(ventana_emergente)
+                
+                titulo = wx.StaticText(panel, label="Listado de Membresías", pos=(350, 15))
+                titulo.SetFont(wx.Font(14, wx.DEFAULT, wx.NORMAL, wx.BOLD))
+
+                list_ctrl = wx.ListCtrl(panel, pos=(20, 50), size=(850, 500),
+                                    style=wx.LC_REPORT | wx.LC_SINGLE_SEL)
+                
+                columnas = [
+                    ("Código", 150),
+                    ("Fecha Activación", 200),
+                    ("Fecha Vigencia", 200),
+                    ("Tipo", 250)
+                ]
+                
+                for i, (col_name, col_width) in enumerate(columnas):
+                    list_ctrl.InsertColumn(i, col_name, width=col_width)
+                
+                for membresia in resultados:
+                    index = list_ctrl.InsertItem(list_ctrl.GetItemCount(), str(membresia["idCodigo"]))
+
+                    fecha_activacion = str(membresia["Fecha_Activacion"]).split()[0] if membresia["Fecha_Activacion"] else ""
+                    fecha_vigencia = str(membresia["Fecha_Vigencia"]).split()[0] if membresia["Fecha_Vigencia"] else ""
+                    
+
+                    list_ctrl.SetItem(index, 1, fecha_activacion)
+                    list_ctrl.SetItem(index, 2, fecha_vigencia)
+                    list_ctrl.SetItem(index, 3, str(membresia["Tipo"]))
+                    
+                    list_ctrl.SetItemBackgroundColour(index, wx.WHITE)
+                
+                list_ctrl.SetBackgroundColour(wx.WHITE)
+                list_ctrl.SetForegroundColour(wx.BLACK)
+                
+                for i in range(list_ctrl.GetItemCount()):
+                    list_ctrl.SetItemState(i, wx.LIST_STATE_SELECTED, wx.LIST_STATE_SELECTED)
+                
+                ventana_emergente.Show()
+            else:
+                wx.MessageBox("No hay membresías registradas", "Información", wx.OK | wx.ICON_INFORMATION)
+
+        except Error as ex:
+            wx.MessageBox(f"Error al consultar membresías: {ex}", "Error", wx.OK | wx.ICON_ERROR)
 
     def regresar_menu(self, event):
         """Regresa al menú principal"""
         if self.parent_frame:
-            self.parent_frame.Show()  # Mostrar el menú
-        self.Close()  # Cerrar esta ventana
+            self.parent_frame.Show()  
+        self.Close()  
 
     def on_close(self, event):
         """Maneja el evento cuando se cierra la ventana"""
         if self.parent_frame:
-            self.parent_frame.Show()  # Mostrar el menú al cerrar
+            self.parent_frame.Show()  
         self.Destroy()
 
 if __name__ == "__main__":

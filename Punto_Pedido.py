@@ -1,7 +1,11 @@
+# Gabriel Flores Urbina
+# https://github.com/GABRIELOSKY25/S4A_TOPICOS
+
 import wx
 import mysql.connector
-from datetime import datetime, timedelta
 import textwrap
+from datetime import datetime, timedelta
+from mysql.connector import Error
 
 # Conexión a la base de datos
 conexion = mysql.connector.connect(
@@ -15,7 +19,7 @@ cursor = conexion.cursor(dictionary=True)
 class PedidoFrame(wx.Frame):
     def __init__(self, parent_frame=None):
         super().__init__(None, title="Sistema de Pedidos - COSTCO", size=(1000, 600))
-        self.parent_frame = parent_frame  # Referencia al frame padre (menú)
+        self.parent_frame = parent_frame  
         panel = wx.Panel(self)
         self.detalle_pedido = []
         self.total = 0.0
@@ -39,7 +43,7 @@ class PedidoFrame(wx.Frame):
         self.txt_total = wx.TextCtrl(panel, pos=(530, 416), size=(100, -1), style=wx.TE_READONLY)
 
         # Campo ID Proveedor
-        wx.StaticText(panel, label="ID Proveedor:", pos=(10, 420))
+        wx.StaticText(panel, label="ID Proveedor:", pos=(13, 420))
         self.txt_idProveedor = wx.TextCtrl(panel, pos=(110, 416), size=(100, -1))
 
         # Campo de entrada para lector de código de barras
@@ -51,6 +55,7 @@ class PedidoFrame(wx.Frame):
 
         # Botones
         wx.Button(panel, label="Agregar Producto", pos=(10, 460), size=(150, 30)).Bind(wx.EVT_BUTTON, self.agregar_producto)
+        wx.Button(panel, label="Eliminar Producto", pos=(10, 500), size=(150, 30)).Bind(wx.EVT_BUTTON, self.eliminar_producto)
         wx.Button(panel, label="Guardar Pedido", pos=(180, 460), size=(150, 30)).Bind(wx.EVT_BUTTON, self.guardar_pedido)
         wx.Button(panel, label="Consultar Proveedores", pos=(350, 460), size=(180, 30)).Bind(wx.EVT_BUTTON, self.consultar_proveedores)
         wx.Button(panel, label="Regresar al menu", pos=(550, 460), size=(150, 30)).Bind(wx.EVT_BUTTON, self.regresar_menu)
@@ -80,45 +85,131 @@ class PedidoFrame(wx.Frame):
         precio = float(self.lst_productos.GetItem(index, 2).GetText())
         existencia_total = int(self.lst_productos.GetItem(index, 3).GetText())
 
-        # Calcular cantidad ya agregada
         cantidad_ya_agregada = sum([item[3] for item in self.detalle_pedido if item[0] == codigo])
 
         cantidad = wx.GetNumberFromUser(
             f"Ingrese cantidad para '{nombre}'\n(Existencia actual: {existencia_total})", 
             "Cantidad:", 
             "Cantidad", 
-            1, 1, 1000)  # Permitir pedir más de lo que hay en existencia
+            1, 1, 1000) 
         
         if cantidad <= 0:
             return
 
-        # Verificar si el producto ya está en el detalle
         producto_existente = next((item for item in self.detalle_pedido if item[0] == codigo), None)
         
         if producto_existente:
-            # Actualizar cantidad y subtotal
             idx = self.detalle_pedido.index(producto_existente)
             nueva_cantidad = producto_existente[3] + cantidad
             nuevo_subtotal = nueva_cantidad * precio
-            
-            # Actualizar lista detalle
+
             for i in range(self.lst_detalle.GetItemCount()):
                 if self.lst_detalle.GetItem(i, 0).GetText() == nombre:
                     self.lst_detalle.SetItem(i, 1, str(nueva_cantidad))
                     self.lst_detalle.SetItem(i, 2, f"{nuevo_subtotal:.2f}")
                     break
-            
-            # Actualizar detalle_pedido
+
             self.detalle_pedido[idx] = (codigo, nombre, precio, nueva_cantidad, nuevo_subtotal)
         else:
-            # Agregar nuevo producto
             subtotal = precio * cantidad
             index_detalle = self.lst_detalle.InsertItem(self.lst_detalle.GetItemCount(), nombre)
             self.lst_detalle.SetItem(index_detalle, 1, str(cantidad))
             self.lst_detalle.SetItem(index_detalle, 2, f"{subtotal:.2f}")
             self.detalle_pedido.append((codigo, nombre, precio, cantidad, subtotal))
 
-        # Actualizar total
+        self.total = sum(item[4] for item in self.detalle_pedido)
+        self.txt_total.SetValue(f"{self.total:.2f}")
+
+    def eliminar_producto(self, event):
+        """Elimina el producto seleccionado del detalle de pedido, permitiendo seleccionar cantidad a eliminar"""
+        index = self.lst_detalle.GetFirstSelected()
+        if index == -1:
+            wx.MessageBox("Seleccione un producto del detalle para eliminar", "Advertencia", wx.OK | wx.ICON_WARNING)
+            return
+
+        nombre_producto = self.lst_detalle.GetItem(index, 0).GetText()
+        cantidad_actual = int(self.lst_detalle.GetItem(index, 1).GetText())
+        precio_unitario = float(self.detalle_pedido[index][2]) 
+
+        cantidad = wx.GetNumberFromUser(
+            f"Ingrese cantidad a eliminar de '{nombre_producto}'\n(En detalle: {cantidad_actual})", 
+            "Cantidad a eliminar:", 
+            "Eliminar Producto", 
+            1, 1, cantidad_actual)
+        
+        if cantidad <= 0:
+            return  
+
+        producto = self.detalle_pedido[index]
+        
+        if cantidad == cantidad_actual:
+           
+            self.lst_detalle.DeleteItem(index)
+            self.detalle_pedido.pop(index)
+        else:
+            nueva_cantidad = cantidad_actual - cantidad
+            nuevo_subtotal = nueva_cantidad * precio_unitario
+            
+            self.lst_detalle.SetItem(index, 1, str(nueva_cantidad))
+            self.lst_detalle.SetItem(index, 2, f"{nuevo_subtotal:.2f}")
+
+            self.detalle_pedido[index] = (
+                producto[0],  
+                producto[1],  
+                producto[2],  
+                nueva_cantidad,
+                nuevo_subtotal
+            )
+
+        self.total = sum(item[4] for item in self.detalle_pedido)
+        self.txt_total.SetValue(f"{self.total:.2f}")
+
+        self.cargar_productos()
+
+    def agregar_producto(self, event):
+        index = self.lst_productos.GetFirstSelected()
+        if index == -1:
+            wx.MessageBox("Seleccione un producto", "Advertencia", wx.OK | wx.ICON_WARNING)
+            return
+
+        codigo = self.lst_productos.GetItem(index, 0).GetText()
+        nombre = self.lst_productos.GetItem(index, 1).GetText()
+        precio = float(self.lst_productos.GetItem(index, 2).GetText())
+        existencia_total = int(self.lst_productos.GetItem(index, 3).GetText())
+
+        cantidad_ya_agregada = sum([item[3] for item in self.detalle_pedido if item[0] == codigo])
+
+        cantidad = wx.GetNumberFromUser(
+            f"Ingrese cantidad para '{nombre}'\n(Existencia actual: {existencia_total})", 
+            "Cantidad:", 
+            "Cantidad", 
+            1, 1, 1000)  
+        
+        if cantidad <= 0:
+            return
+
+        producto_existente = next((item for item in self.detalle_pedido if item[0] == codigo), None)
+        
+        if producto_existente:
+     
+            idx = self.detalle_pedido.index(producto_existente)
+            nueva_cantidad = producto_existente[3] + cantidad
+            nuevo_subtotal = nueva_cantidad * precio
+            
+            for i in range(self.lst_detalle.GetItemCount()):
+                if self.lst_detalle.GetItem(i, 0).GetText() == nombre:
+                    self.lst_detalle.SetItem(i, 1, str(nueva_cantidad))
+                    self.lst_detalle.SetItem(i, 2, f"{nuevo_subtotal:.2f}")
+                    break
+            
+            self.detalle_pedido[idx] = (codigo, nombre, precio, nueva_cantidad, nuevo_subtotal)
+        else:
+            subtotal = precio * cantidad
+            index_detalle = self.lst_detalle.InsertItem(self.lst_detalle.GetItemCount(), nombre)
+            self.lst_detalle.SetItem(index_detalle, 1, str(cantidad))
+            self.lst_detalle.SetItem(index_detalle, 2, f"{subtotal:.2f}")
+            self.detalle_pedido.append((codigo, nombre, precio, cantidad, subtotal))
+
         self.total = sum(item[4] for item in self.detalle_pedido)
         self.txt_total.SetValue(f"{self.total:.2f}")
 
@@ -150,7 +241,6 @@ class PedidoFrame(wx.Frame):
             wx.MessageBox("Complete el ID del proveedor y agregue productos", "Error", wx.OK | wx.ICON_ERROR)
             return
 
-        # Mostrar diálogo para ingresar el pago
         dlg = wx.TextEntryDialog(self, f"Ingrese el monto con el que paga (Total: ${self.total:.2f})", "Pago")
         dlg.SetValue(f"{self.total:.2f}")
         
@@ -177,12 +267,10 @@ class PedidoFrame(wx.Frame):
             fecha_pedido = datetime.now()
             fecha_entrega = fecha_pedido + timedelta(days=7)
 
-            # Obtener información del proveedor para el ticket
             cursor.execute("SELECT Nombre FROM Proveedor WHERE idProveedor = %s", (idProveedor,))
             proveedor = cursor.fetchone()
             nombre_proveedor = proveedor["Nombre"] if proveedor else "Proveedor no encontrado"
 
-            # Insertar pedido con todos los campos requeridos
             cursor.execute("""
                 INSERT INTO Pedido (idPedido, idProveedor, Fecha_Pedido, Fecha_Entrega, Importe, Pago, Cambio, Estado)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
@@ -194,14 +282,12 @@ class PedidoFrame(wx.Frame):
                     VALUES (%s, %s, %s, %s, %s)
                 """, (codigo, idPedido, cantidad, subtotal, precio))
 
-                # Actualizar inventario (aumentar existencia)
                 cursor.execute("""
                     UPDATE Articulo SET Existencia = Existencia + %s WHERE idCodigo_Barra = %s
                 """, (cantidad, codigo))
 
             conexion.commit()
             
-            # Generar y mostrar el ticket
             self.generar_ticket_pedido(idPedido, fecha_pedido, fecha_entrega, nombre_proveedor, pago, cambio)
             self.limpiar_formulario()
 
@@ -212,7 +298,6 @@ class PedidoFrame(wx.Frame):
             dlg.Destroy()
 
     def generar_ticket_pedido(self, id_pedido, fecha_pedido, fecha_entrega, nombre_proveedor, pago, cambio):
-        # Crear el contenido del ticket
         ticket = f"""
         {'COSTCO - ORDEN DE COMPRA'.center(50)}
         {'\n'.join(textwrap.wrap('Av. de los Insurgentes Sur 1800, Florida, 01030 Ciudad de México, CDMX', width=50))}
@@ -244,7 +329,6 @@ class PedidoFrame(wx.Frame):
         {'¡ORDEN REGISTRADA!'.center(50)}
         """
         
-        # Mostrar el ticket en un diálogo
         dlg = wx.Dialog(self, title="Ticket de Pedido", size=(600, 700))
         panel = wx.Panel(dlg)
         text = wx.TextCtrl(panel, value=ticket, style=wx.TE_MULTILINE|wx.TE_READONLY|wx.HSCROLL)
@@ -279,21 +363,68 @@ class PedidoFrame(wx.Frame):
         self.cargar_productos()
 
     def consultar_proveedores(self, event):
-        cursor.execute("SELECT idProveedor, Nombre FROM Proveedor")
-        proveedores = cursor.fetchall()
-        lista = "\n".join([f"ID: {p['idProveedor']} - {p['Nombre']}" for p in proveedores])
-        wx.MessageBox(lista if lista else "No hay proveedores registrados", "IDs de Proveedores", wx.OK | wx.ICON_INFORMATION)
+        try:
+            query = "SELECT idProveedor, Nombre, Apellidos, Telefono, Direccion FROM Proveedor"
+            cursor.execute(query)
+            resultados = cursor.fetchall()
+
+            if resultados:
+                ventana_emergente = wx.Frame(None, title="Listado de Proveedores", size=(800, 500))
+                panel = wx.Panel(ventana_emergente)
+                
+                titulo = wx.StaticText(panel, label="Listado de Proveedores", pos=(250, 15))
+                titulo.SetFont(wx.Font(14, wx.DEFAULT, wx.NORMAL, wx.BOLD))
+
+                list_ctrl = wx.ListCtrl(panel, pos=(20, 50), size=(750, 400),
+                                    style=wx.LC_REPORT | wx.LC_SINGLE_SEL)
+                columnas = [
+                    ("ID", 80),
+                    ("Nombre", 150),
+                    ("Apellidos", 150),
+                    ("Teléfono", 150),
+                    ("Dirección", 220)
+                ]
+                
+                for i, (col_name, col_width) in enumerate(columnas):
+                    list_ctrl.InsertColumn(i, col_name, width=col_width)
+                
+                for proveedor in resultados:
+                   
+                    id_proveedor = str(proveedor["idProveedor"])
+                    nombre = str(proveedor["Nombre"])
+                    apellidos = str(proveedor["Apellidos"])
+                    telefono = str(proveedor["Telefono"]) if proveedor["Telefono"] else ""
+                    direccion = str(proveedor["Direccion"]) if proveedor["Direccion"] else ""
+
+                    index = list_ctrl.InsertItem(list_ctrl.GetItemCount(), id_proveedor)
+                    
+                    list_ctrl.SetItem(index, 1, nombre)
+                    list_ctrl.SetItem(index, 2, apellidos)
+                    list_ctrl.SetItem(index, 3, telefono)
+                    list_ctrl.SetItem(index, 4, direccion)
+                    
+                    if index % 2 == 0:
+                        list_ctrl.SetItemBackgroundColour(index, wx.Colour(240, 240, 240))
+                    else:
+                        list_ctrl.SetItemBackgroundColour(index, wx.WHITE)
+                
+                ventana_emergente.Show()
+            else:
+                wx.MessageBox("No hay proveedores registrados", "Información", wx.OK | wx.ICON_INFORMATION)
+
+        except Exception as e:
+            wx.MessageBox(f"Error al consultar proveedores: {str(e)}", "Error", wx.OK | wx.ICON_ERROR)
 
     def regresar_menu(self, event):
         """Regresa al menú principal"""
         if self.parent_frame:
-            self.parent_frame.Show()  # Mostrar el menú
-        self.Close()  # Cerrar esta ventana
+            self.parent_frame.Show()  
+        self.Close() 
 
     def on_close(self, event):
         """Maneja el evento cuando se cierra la ventana"""
         if self.parent_frame:
-            self.parent_frame.Show()  # Mostrar el menú al cerrar
+            self.parent_frame.Show()  
         self.Destroy()
 
 if __name__ == "__main__":

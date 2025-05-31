@@ -31,11 +31,14 @@ def Menu():
     boton_Categoria = wx.Button(panel, label="Categoria", pos=(310, 120), size=(100, 30))
     boton_Proveedor = wx.Button(panel, label="Proveedor", pos=(310, 170), size=(100, 30))
     boton_Punto_Pedido = wx.Button(panel, label="Punto de Pedido", pos=(310, 220), size=(100, 30))
+    
+    # Botón de Salida (nuevo)
+    boton_Salir = wx.Button(panel, label="Salir", pos=(185, 280), size=(100, 30))
 
     # Funciones para abrir ventanas
     def abrir_membresia(event):
-        ventana.Hide()  # Ocultar el menú
-        Membresia(ventana)  # Pasar referencia del menú
+        ventana.Hide()
+        Membresia(ventana)  
 
     def abrir_cliente(event):
         ventana.Hide() 
@@ -64,6 +67,9 @@ def Menu():
     def abrir_pedidos(event):
         ventana.Hide()  
         PedidoFrame(ventana) 
+        
+    def salir(event):
+        ventana.Close()
 
     # Eventos de los botones
     boton_Membresia.Bind(wx.EVT_BUTTON, abrir_membresia)
@@ -74,6 +80,7 @@ def Menu():
     boton_Categoria.Bind(wx.EVT_BUTTON, abrir_categoria)
     boton_Proveedor.Bind(wx.EVT_BUTTON, abrir_proveedor)
     boton_Punto_Pedido.Bind(wx.EVT_BUTTON, abrir_pedidos)
+    boton_Salir.Bind(wx.EVT_BUTTON, salir)  
     
     ventana.Show()
 

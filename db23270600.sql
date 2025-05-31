@@ -143,28 +143,3 @@ CREATE TABLE `Detalles_Venta` (
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
-
-
--- Insertar los Categorias
-INSERT INTO categoria (idCategoria, Nombre) VALUES 
-(1, 'Abarrotes'),
-(2, 'Aceites y grasas'),
-(3, 'Papelería y limpieza'),
-(4, 'Detergentes y limpieza'),
-(5, 'Cuidado personal'),
-(6, 'Lácteos'),
-(7, 'Panadería'),
-(8, 'Alimentos instantáneos');
-
--- Insertar los aritulos
-INSERT INTO articulo (idCodigo_Barra, idCategoria, Nombre, Precio, Existencia, Marca, Caracteristicas) VALUES
-('7501000123457', 1, 'Arroz', 27.50, 100, 'La Merced', 'Grano largo, extra limpio'),
-('7501000123464', 1, 'Frijol Negro', 29.00, 80, 'La Sierra', 'Frijol de grano entero'),
-('7501000123471', 2, 'Aceite vegetal', 45.00, 60, 'Nutrioli', 'Aceite 100% vegetal'),
-('7501000123488', 3, 'Papel Higiénico', 35.00, 200, 'Regio', 'Suavidad y resistencia'),
-('7501000123495', 4, 'Detergente en polvo', 48.90, 90, 'Ariel', 'Rinde más por carga'),
-('7501000123501', 1, 'Azúcar', 25.00, 120, 'Zulka', 'Azúcar estándar'),
-('7501000123518', 5, 'Shampoo', 56.00, 70, 'Head & Shoulders', 'Control de caspa'),
-('7501000123525', 6, 'Leche entera', 22.00, 150, 'Lala', 'Fortificada con vitaminas A y D'),
-('7501000123532', 7, 'Pan de caja', 38.00, 100, 'Bimbo', 'Pan blanco suave'),
-('7501000123549', 8, 'Sopa instantánea', 14.00, 300, 'Maruchan', 'Sabor camarón picante');

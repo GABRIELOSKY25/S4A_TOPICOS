@@ -1,6 +1,5 @@
 # Gabriel Flores Urbina
-
-#https://github.com/GABRIELOSKY25/S4A_TOPICOS
+# https://github.com/GABRIELOSKY25/S4A_TOPICOS
 
 import wx
 import mysql.connector
@@ -23,9 +22,9 @@ except Error as ex:
     print("Error al conectar:", ex)
 
 def Categoria(parent_frame=None):
-    ventana = wx.Frame(None, title='Categoría', size=(500, 340))  # Aumenté el tamaño para el botón de regresar
+    ventana = wx.Frame(None, title='Categoría', size=(500, 340))  
     panel = wx.Panel(ventana)
-    ventana.parent_frame = parent_frame  # Guardar referencia al frame padre (menú)
+    ventana.parent_frame = parent_frame  
 
     # Título
     titulo = wx.StaticText(panel, label="Categorías", pos=(187, 30))
@@ -84,28 +83,22 @@ def Categoria(parent_frame=None):
             resultados = cursor.fetchall()
 
             if resultados:
-                # Crear ventana emergente
                 ventana_emergente = wx.Frame(None, title="Listado de Categorías", size=(600, 500))
                 panel = wx.Panel(ventana_emergente)
                 
-                # Título
                 titulo = wx.StaticText(panel, label="Listado de Categorías", pos=(200, 15))
                 titulo.SetFont(wx.Font(14, wx.DEFAULT, wx.NORMAL, wx.BOLD))
 
-                # Crear ListCtrl en modo reporte (tabla)
-                list_ctrl = wx.ListCtrl(panel, pos=(20, 50), size=(550, 400), 
-                                    style=wx.LC_REPORT | wx.LC_HRULES | wx.LC_VRULES)
+                list_ctrl = wx.ListCtrl(panel, pos=(20, 50), size=(550, 400), style=wx.LC_REPORT | wx.LC_HRULES | wx.LC_VRULES)
                 
-                # Configurar columnas
                 list_ctrl.InsertColumn(0, "ID Categoría", width=150)
                 list_ctrl.InsertColumn(1, "Nombre", width=380)
                 
-                # Llenar con datos
                 for categoria in resultados:
                     index = list_ctrl.InsertItem(list_ctrl.GetItemCount(), str(categoria[0]))
                     list_ctrl.SetItem(index, 1, str(categoria[1]))
                     
-                    # Alternar colores de fondo para mejor legibilidad
+
                     if index % 2 == 0:
                         list_ctrl.SetItemBackgroundColour(index, wx.Colour(240, 240, 240))
                     else:
@@ -121,13 +114,13 @@ def Categoria(parent_frame=None):
     def regresar_menu(event):
         """Regresa al menú principal"""
         if ventana.parent_frame:
-            ventana.parent_frame.Show()  # Mostrar el menú
-        ventana.Destroy()  # Cerrar esta ventana
+            ventana.parent_frame.Show() 
+        ventana.Destroy() 
 
     def on_close(event):
         """Maneja el evento cuando se cierra la ventana"""
         if ventana.parent_frame:
-            ventana.parent_frame.Show()  # Mostrar el menú al cerrar
+            ventana.parent_frame.Show() 
         ventana.Destroy()
 
     # Botones CRUD

@@ -1,6 +1,5 @@
 # Gabriel Flores Urbina
-
-#https://github.com/GABRIELOSKY25/S4A_TOPICOS
+# https://github.com/GABRIELOSKY25/S4A_TOPICOS
 
 import wx
 import mysql.connector
@@ -71,7 +70,6 @@ def Historial_Precio():
 
     def actualizar_historial(event):
         try:
-            # Actualizar historial de precios
             query_historial = """UPDATE historial_precio SET 
                 idCodigo_Barra=%s, Precio_Anterior=%s, Precio_Nuevo=%s, Fecha_Cambio=%s 
                 WHERE idHistorial_Precio=%s"""
@@ -84,7 +82,6 @@ def Historial_Precio():
             )
             cursor.execute(query_historial, valores_historial)
 
-            # Actualizar precio en la tabla ARTICULO
             query_articulo = "UPDATE articulo SET Precio = %s WHERE idCodigo_Barra = %s"
             valores_articulo = (
                 txt_Precio_Nuevo.GetValue(),
@@ -122,14 +119,12 @@ def Historial_Precio():
 
                 wx.StaticText(panel, label="Listado de Historial de Precios", pos=(250, 15)).SetFont(wx.Font(14, wx.DEFAULT, wx.NORMAL, wx.BOLD))
 
-                # Encabezados
                 headers = ["ID Historial", "ID Código Barra", "Precio Anterior", "Precio Nuevo", "Fecha Cambio"]
                 for i, header in enumerate(headers):
                     wx.StaticText(panel, label=header, pos=(20 + i * 160, 50)).SetFont(wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD))
 
-                # Mostrar cada registro con separación vertical
                 for row_index, historial in enumerate(resultados):
-                    y = 70 + row_index * 30  # Espaciado entre filas
+                    y = 70 + row_index * 30  
                     for col_index, valor in enumerate(historial):
                         wx.StaticText(panel, label=str(valor), pos=(20 + col_index * 160, y))
 

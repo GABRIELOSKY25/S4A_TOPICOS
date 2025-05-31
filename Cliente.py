@@ -22,9 +22,9 @@ except Error as ex:
     print("Error al conectar:", ex)
 
 def Cliente(parent_frame=None):
-    ventana = wx.Frame(None, title='Clientes', size=(500, 550))  # Aumenté el tamaño para el botón de regresar
+    ventana = wx.Frame(None, title='Clientes', size=(500, 550))  
     panel = wx.Panel(ventana)
-    ventana.parent_frame = parent_frame  # Guardar referencia al frame padre (menú)
+    ventana.parent_frame = parent_frame 
 
     # Título
     titulo = wx.StaticText(panel, label="Clientes", pos=(195, 30))
@@ -121,15 +121,13 @@ def Cliente(parent_frame=None):
                 ventana_emergente = wx.Frame(None, title="Listado de Clientes", size=(1100, 600))
                 panel = wx.Panel(ventana_emergente)
 
-                # Título
+                
                 titulo = wx.StaticText(panel, label="Listado de Clientes", pos=(400, 15))
                 titulo.SetFont(wx.Font(14, wx.DEFAULT, wx.NORMAL, wx.BOLD))
 
-                # Crear ListCtrl en modo reporte (tabla)
                 list_ctrl = wx.ListCtrl(panel, pos=(10, 50), size=(1060, 500), 
                                     style=wx.LC_REPORT | wx.LC_HRULES | wx.LC_VRULES)
                 
-                # Configurar columnas
                 columnas = [
                     ("ID Cliente", 100),
                     ("Código", 100),
@@ -144,13 +142,11 @@ def Cliente(parent_frame=None):
                 for i, (col_name, col_width) in enumerate(columnas):
                     list_ctrl.InsertColumn(i, col_name, width=col_width)
                 
-                # Llenar con datos
                 for cliente in resultados:
                     index = list_ctrl.InsertItem(list_ctrl.GetItemCount(), str(cliente[0]))
                     for i in range(1, 8):
                         list_ctrl.SetItem(index, i, str(cliente[i]))
                     
-                    # Alternar colores de fondo
                     if index % 2 == 0:
                         list_ctrl.SetItemBackgroundColour(index, wx.Colour(240, 240, 240))
                     else:
@@ -165,13 +161,13 @@ def Cliente(parent_frame=None):
     def regresar_menu(event):
         """Regresa al menú principal"""
         if ventana.parent_frame:
-            ventana.parent_frame.Show()  # Mostrar el menú
-        ventana.Destroy()  # Cerrar esta ventana
+            ventana.parent_frame.Show() 
+        ventana.Destroy()  
 
     def on_close(event):
         """Maneja el evento cuando se cierra la ventana"""
         if ventana.parent_frame:
-            ventana.parent_frame.Show()  # Mostrar el menú al cerrar
+            ventana.parent_frame.Show()  
         ventana.Destroy()
 
     # Botones CRUD

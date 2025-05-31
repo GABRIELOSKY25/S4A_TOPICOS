@@ -1,0 +1,8 @@
+Package                   Version    Explicación 
+------------------------  ---------  --------------------------------------------------
+
+mysql                     0.0.3      # Paquete legacy para conexión MySQL
+mysql-connector-python    9.3.0      # Conector oficial MySQL para Python
+mysqlclient               2.2.7      # Versión optimizada para Django y sistemas Unix
+pip                       25.0.1     # Gestor de paquetes de Python
+wxPython                  4.2.3      # Framework para interfaces gráficas (GUI)

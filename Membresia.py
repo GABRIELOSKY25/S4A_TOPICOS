@@ -20,9 +20,9 @@ except Error as ex:
     print("Error al conectar:", ex)
 
 def Membresia(parent_frame=None):
-    ventana = wx.Frame(None, title='Membresía', size=(500, 400))  # Aumenté el tamaño para el botón de regresar
+    ventana = wx.Frame(None, title='Membresía', size=(500, 400))  
     panel = wx.Panel(ventana)
-    ventana.parent_frame = parent_frame  # Guardar referencia al frame padre (menú)
+    ventana.parent_frame = parent_frame  
 
     # Título
     titulo = wx.StaticText(panel, label="Membresías", pos=(180, 30))
@@ -106,19 +106,15 @@ def Membresia(parent_frame=None):
             resultados = cursor.fetchall()
 
             if resultados:
-                # Crear ventana con tamaño adecuado
                 ventana_emergente = wx.Frame(None, title="Listado de Membresías", size=(900, 600))
                 panel = wx.Panel(ventana_emergente)
                 
-                # Título centrado
                 titulo = wx.StaticText(panel, label="Listado de Membresías", pos=(350, 15))
                 titulo.SetFont(wx.Font(14, wx.DEFAULT, wx.NORMAL, wx.BOLD))
 
-                # Crear ListCtrl (tabla más profesional)
                 list_ctrl = wx.ListCtrl(panel, pos=(20, 50), size=(850, 500),
                                     style=wx.LC_REPORT | wx.LC_SINGLE_SEL)
                 
-                # Configurar columnas con anchos adecuados
                 columnas = [
                     ("Código", 150),
                     ("Fecha Activación", 200),
@@ -129,27 +125,21 @@ def Membresia(parent_frame=None):
                 for i, (col_name, col_width) in enumerate(columnas):
                     list_ctrl.InsertColumn(i, col_name, width=col_width)
                 
-                # Llenar tabla con datos
                 for membresia in resultados:
                     index = list_ctrl.InsertItem(list_ctrl.GetItemCount(), str(membresia[0]))
-                    
-                    # Formatear fechas (mostrar solo fecha sin hora)
+    
                     fecha_activacion = str(membresia[1]).split()[0] if membresia[1] else ""
                     fecha_vigencia = str(membresia[2]).split()[0] if membresia[2] else ""
                     
-                    # Agregar datos a cada columna
                     list_ctrl.SetItem(index, 1, fecha_activacion)
                     list_ctrl.SetItem(index, 2, fecha_vigencia)
                     list_ctrl.SetItem(index, 3, str(membresia[3]))
                     
-                    # Color de fondo blanco para todas las filas
                     list_ctrl.SetItemBackgroundColour(index, wx.WHITE)
                 
-                # Configuración visual adicional
                 list_ctrl.SetBackgroundColour(wx.WHITE)
                 list_ctrl.SetForegroundColour(wx.BLACK)
-                
-                # Ajustar automáticamente el tamaño de las filas
+
                 for i in range(list_ctrl.GetItemCount()):
                     list_ctrl.SetItemState(i, wx.LIST_STATE_SELECTED, wx.LIST_STATE_SELECTED)
                 
@@ -163,13 +153,13 @@ def Membresia(parent_frame=None):
     def regresar_menu(event):
         """Regresa al menú principal"""
         if ventana.parent_frame:
-            ventana.parent_frame.Show()  # Mostrar el menú
-        ventana.Destroy()  # Cerrar esta ventana
+            ventana.parent_frame.Show()  
+        ventana.Destroy()  
 
     def on_close(event):
         """Maneja el evento cuando se cierra la ventana"""
         if ventana.parent_frame:
-            ventana.parent_frame.Show()  # Mostrar el menú al cerrar
+            ventana.parent_frame.Show() 
         ventana.Destroy()
 
     # Botones CRUD

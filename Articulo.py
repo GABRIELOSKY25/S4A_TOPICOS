@@ -1,6 +1,5 @@
 # Gabriel Flores Urbina
-
-#https://github.com/GABRIELOSKY25/S4A_TOPICOS
+# https://github.com/GABRIELOSKY25/S4A_TOPICOS
 
 import wx
 import mysql.connector
@@ -24,23 +23,19 @@ except Error as ex:
     print("Error al conectar:", ex)
 
 def Articulo(parent_frame=None):
-    ventana = wx.Frame(None, title='Articulo', size=(500, 550))  # Aumenté el tamaño para el botón de regresar
+    ventana = wx.Frame(None, title='Articulo', size=(500, 550))  
     panel = wx.Panel(ventana)
-    ventana.parent_frame = parent_frame  # Guardar referencia al frame padre (menú)
+    ventana.parent_frame = parent_frame 
 
-    # Título
     titulo = wx.StaticText(panel, label="Articulos", pos=(195, 30))
     titulo.SetFont(wx.Font(16, wx.DEFAULT, wx.NORMAL, wx.BOLD))
 
-    # Campos
     wx.StaticText(panel, label="idCodigo Barra:", pos=(40, 80)).SetFont(wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD))
     txt_idCodigo_Barra = wx.TextCtrl(panel, pos=(140, 76), size=(200, -1))
     txt_idCodigo_Barra.SetBackgroundColour(wx.Colour(254, 241, 147))
 
-    # Campo idCategoria como ComboBox
     wx.StaticText(panel, label="idCategoria:", pos=(40, 120)).SetFont(wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD))
-    
-    # Obtener categorías de la base de datos
+
     categorias = []
     try:
         cursor.execute("SELECT idCategoria, Nombre FROM categoria")
@@ -48,13 +43,13 @@ def Articulo(parent_frame=None):
     except Error as e:
         wx.MessageBox(f"Error al cargar categorías: {e}", "Error", wx.OK | wx.ICON_ERROR)
     
-    # Crear ComboBox con las categorías
+
     combo_categorias = wx.ComboBox(panel, pos=(140, 116), size=(200, -1), style=wx.CB_READONLY)
     combo_categorias.SetBackgroundColour(wx.Colour(254, 241, 147))
     
-    # Llenar el ComboBox con los datos
+
     for cat in categorias:
-        combo_categorias.Append(f"{cat[0]} - {cat[1]}", str(cat[0]))  # Mostrar: "ID - Nombre", valor: ID
+        combo_categorias.Append(f"{cat[0]} - {cat[1]}", str(cat[0])) 
 
     wx.StaticText(panel, label="Nombre:", pos=(40, 160)).SetFont(wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD))
     txt_Nombre = wx.TextCtrl(panel, pos=(140, 156), size=(200, -1))
@@ -130,19 +125,15 @@ def Articulo(parent_frame=None):
             resultados = cursor.fetchall()
 
             if resultados:
-                # Crear ventana emergente
                 ventana_emergente = wx.Frame(None, title="Listado de Artículos", size=(1200, 600))
                 panel = wx.Panel(ventana_emergente)
                 
-                # Título
                 titulo = wx.StaticText(panel, label="Listado de Artículos", pos=(450, 15))
                 titulo.SetFont(wx.Font(14, wx.DEFAULT, wx.NORMAL, wx.BOLD))
 
-                # Crear ListCtrl con fondo completamente blanco
                 list_ctrl = wx.ListCtrl(panel, pos=(20, 50), size=(1150, 500),
                                     style=wx.LC_REPORT)
                 
-                # Configurar columnas
                 columnas = [
                     ("Código Barras", 150),
                     ("ID Categoría", 100),
@@ -156,23 +147,20 @@ def Articulo(parent_frame=None):
                 for i, (col_name, col_width) in enumerate(columnas):
                     list_ctrl.InsertColumn(i, col_name, width=col_width)
                 
-                # Llenar con datos
                 for articulo in resultados:
                     index = list_ctrl.InsertItem(list_ctrl.GetItemCount(), str(articulo[0]))
                     
                     for col in range(1, 7):
-                        if col == 3:  # Columna de Precio
+                        if col == 3:  
                             list_ctrl.SetItem(index, col, f"${float(articulo[col]):.2f}")
                         else:
                             list_ctrl.SetItem(index, col, str(articulo[col]))
                     
-                    # Fondo blanco para todas las filas
                     list_ctrl.SetItemBackgroundColour(index, wx.WHITE)
                 
-                # Configurar color blanco para toda la tabla
                 list_ctrl.SetBackgroundColour(wx.WHITE)
-                list_ctrl.SetForegroundColour(wx.BLACK)  # Texto en negro
-                
+                list_ctrl.SetForegroundColour(wx.BLACK) 
+
                 ventana_emergente.Show()
             else:
                 wx.MessageBox("No hay artículos registrados", "Información", wx.OK | wx.ICON_INFORMATION)
@@ -183,13 +171,13 @@ def Articulo(parent_frame=None):
     def regresar_menu(event):
         """Regresa al menú principal"""
         if ventana.parent_frame:
-            ventana.parent_frame.Show()  # Mostrar el menú
-        ventana.Destroy()  # Cerrar esta ventana
+            ventana.parent_frame.Show()  
+        ventana.Destroy() 
 
     def on_close(event):
         """Maneja el evento cuando se cierra la ventana"""
         if ventana.parent_frame:
-            ventana.parent_frame.Show()  # Mostrar el menú al cerrar
+            ventana.parent_frame.Show()  
         ventana.Destroy()
 
     # Botones CRUD
